@@ -1,0 +1,157 @@
+{
+  "rules": [
+    {
+      "name": "deny-sensitive-ssh",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["*"],
+      "resources": ["*/.ssh/*", "*/id_rsa*", "*/id_ed25519*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-sensitive-aws",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["*"],
+      "resources": ["*/.aws/*", "*credentials*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-sensitive-cloud",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["*"],
+      "resources": ["*/.gcp/*", "*/.azure/*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-env-production",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["*"],
+      "resources": ["*/.env.local", "*/.env.production", "*secrets*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-key-files",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["*"],
+      "resources": ["*.pem", "*.key"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "allow-read-source-code",
+      "effect": "allow",
+      "principals": ["agent:coding", "agent:secureclaw"],
+      "actions": ["fs.read", "fs.list"],
+      "resources": ["*.ts", "*.tsx", "*.js", "*.jsx", "*.py", "*.rs", "*.go", "*.java", "*.c", "*.cpp", "*.h", "*.hpp", "*.swift", "*.kt", "*.rb", "*.php", "*.cs", "*.vue", "*.svelte"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "allow-read-config",
+      "effect": "allow",
+      "principals": ["agent:coding", "agent:secureclaw"],
+      "actions": ["fs.read", "fs.list"],
+      "resources": ["*.json", "*.yaml", "*.yml", "*.toml", "*.md", "*.mdx", "*.txt", "*.xml", "*.html", "*.css", "*.scss", "*Dockerfile*", "*Makefile", "*.gitignore"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "allow-write-source-code",
+      "effect": "allow",
+      "principals": ["agent:coding", "agent:secureclaw"],
+      "actions": ["fs.write"],
+      "resources": ["*.ts", "*.tsx", "*.js", "*.jsx", "*.py", "*.rs", "*.go", "*.java", "*.md", "*.json", "*.yaml", "*.yml"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "allow-safe-shell-npm",
+      "effect": "allow",
+      "principals": ["agent:coding", "agent:secureclaw"],
+      "actions": ["shell.exec"],
+      "resources": ["npm *", "pnpm *", "yarn *", "bun *", "npx *"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "allow-safe-shell-node",
+      "effect": "allow",
+      "principals": ["agent:coding", "agent:secureclaw"],
+      "actions": ["shell.exec"],
+      "resources": ["node *", "python *", "pip *", "cargo *", "go *", "make *"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "allow-safe-shell-git-read",
+      "effect": "allow",
+      "principals": ["agent:coding", "agent:secureclaw"],
+      "actions": ["shell.exec"],
+      "resources": ["git status*", "git log*", "git diff*", "git branch*", "git show*", "git fetch*", "git pull*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "allow-safe-shell-utils",
+      "effect": "allow",
+      "principals": ["agent:coding", "agent:secureclaw"],
+      "actions": ["shell.exec"],
+      "resources": ["ls *", "cat *", "head *", "tail *", "wc *", "grep *", "find *", "tree *", "pwd", "echo *", "which *"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "allow-test-commands",
+      "effect": "allow",
+      "principals": ["agent:coding", "agent:secureclaw"],
+      "actions": ["shell.exec"],
+      "resources": ["npm test*", "npm run test*", "pnpm test*", "yarn test*", "pytest*", "cargo test*", "go test*", "jest*", "vitest*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "allow-build-commands",
+      "effect": "allow",
+      "principals": ["agent:coding", "agent:secureclaw"],
+      "actions": ["shell.exec"],
+      "resources": ["npm run build*", "pnpm build*", "yarn build*", "cargo build*", "go build*", "make build*", "make all*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-dangerous-git",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["shell.exec"],
+      "resources": ["git push --force*", "git reset --hard*", "git clean -fd*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-network",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["http.request"],
+      "resources": ["*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-browser",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["browser.*"],
+      "resources": ["*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    }
+  ]
+}
