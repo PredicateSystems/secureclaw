@@ -1,0 +1,72 @@
+# Sync upstream OpenClaw changes to main branch
+# This keeps main as a pure mirror of upstream, allowing rebases on secureclaw branch
+#
+# Required secrets:
+#   SYNC_TOKEN - Personal Access Token with 'repo' and 'workflow' scopes
+#   Create at: https://github.com/settings/tokens
+#   Required scopes: repo, workflow
+
+name: Sync Upstream
+
+on:
+  schedule:
+    # Run daily at 6 AM UTC
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    # Allow manual triggering
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+          # Use PAT with workflow scope to allow pushing workflow file changes
+          token: ${{ secrets.SYNC_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/openclaw/openclaw.git || true
+          git fetch upstream
+
+      - name: Sync main with upstream (preserve our workflows)
+        run: |
+          # Save our workflow files
+          mkdir -p /tmp/our-workflows
+          cp -r .github/workflows/* /tmp/our-workflows/ 2>/dev/null || true
+
+          # Reset to upstream
+          git checkout main
+          git reset --hard upstream/main
+
+          # Restore our workflow files
+          cp -r /tmp/our-workflows/* .github/workflows/
+
+          # Commit if there are changes to workflows
+          git add .github/workflows/
+          git diff --staged --quiet || git commit -m "ci: preserve secureclaw workflows after upstream sync"
+
+          # Push
+          git push origin main --force
+
+      - name: Create sync summary
+        run: |
+          UPSTREAM_SHA=$(git rev-parse upstream/main)
+          echo "## Upstream Sync Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Main branch synced to upstream commit: \`${UPSTREAM_SHA}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "To rebase secureclaw branch locally:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "git fetch origin" >> $GITHUB_STEP_SUMMARY
+          echo "git checkout secureclaw" >> $GITHUB_STEP_SUMMARY
+          echo "git rebase origin/main" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
