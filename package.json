@@ -11,15 +11,15 @@
     "security",
     "zero-trust"
   ],
-  "homepage": "https://github.com/rcholic/secureclaw#readme",
+  "homepage": "https://github.com/PredicateSystems/secureclaw#readme",
   "bugs": {
-    "url": "https://github.com/rcholic/secureclaw/issues"
+    "url": "https://github.com/PredicateSystems/secureclaw/issues"
   },
   "license": "MIT",
   "author": "Predicate Systems <hello@predicatesystems.ai>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rcholic/secureclaw.git"
+    "url": "git+https://github.com/PredicateSystems/secureclaw.git"
   },
   "bin": {
     "openclaw": "openclaw.mjs"
