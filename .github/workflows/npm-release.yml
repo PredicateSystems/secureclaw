@@ -1,0 +1,76 @@
+# Publish SecureClaw to NPM on version tags
+#
+# Workflow:
+#   1. Bump version in package.json
+#   2. Commit and push: git add package.json && git commit -m "release: v0.1.0"
+#   3. Tag and push: git tag v0.1.0 && git push origin phase2 --tags
+#
+# Required secrets:
+#   NPM_TOKEN - NPM access token with publish permissions
+#   Create at: https://www.npmjs.com/settings/<username>/tokens
+
+name: NPM Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+concurrency:
+  group: npm-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.23.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Verify version matches tag
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [[ "$TAG_VERSION" != "$PKG_VERSION" ]]; then
+            echo "::error::Tag version ($TAG_VERSION) does not match package.json version ($PKG_VERSION)"
+            exit 1
+          fi
+          echo "Version verified: $PKG_VERSION"
+
+      - name: Publish to NPM
+        run: pnpm publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create release summary
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "## NPM Release Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Published **secureclaw@${VERSION}** to NPM" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Install with:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "npm install secureclaw@${VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

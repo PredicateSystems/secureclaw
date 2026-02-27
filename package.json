@@ -1,17 +1,25 @@
 {
-  "name": "openclaw",
-  "version": "2026.2.26",
-  "description": "Multi-channel AI gateway with extensible messaging integrations",
-  "keywords": [],
-  "homepage": "https://github.com/openclaw/openclaw#readme",
+  "name": "secureclaw",
+  "version": "0.1.0",
+  "description": "SecureClaw: Zero-trust security fork of OpenClaw with pre-authorization and post-verification",
+  "keywords": [
+    "agentic-security",
+    "ai-agent",
+    "authorization",
+    "openclaw",
+    "predicate",
+    "security",
+    "zero-trust"
+  ],
+  "homepage": "https://github.com/rcholic/secureclaw#readme",
   "bugs": {
-    "url": "https://github.com/openclaw/openclaw/issues"
+    "url": "https://github.com/rcholic/secureclaw/issues"
   },
   "license": "MIT",
-  "author": "",
+  "author": "Predicate Systems <hello@predicatesystems.ai>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/openclaw/openclaw.git"
+    "url": "git+https://github.com/rcholic/secureclaw.git"
   },
   "bin": {
     "openclaw": "openclaw.mjs"
