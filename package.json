@@ -1,6 +1,6 @@
 {
   "name": "secureclaw",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "SecureClaw: Zero-trust security fork of OpenClaw with pre-authorization and post-verification",
   "keywords": [
     "agentic-security",
