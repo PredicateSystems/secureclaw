@@ -1,0 +1,143 @@
+# SecureClaw Default Policy
+# Fail-closed: all actions require explicit allowlist
+#
+# This policy provides a secure baseline that blocks everything by default.
+# Customize for your use case or use one of the examples in policies/examples/
+
+version: "1.0"
+name: "secureclaw-default"
+description: "Fail-closed default policy - requires explicit allow rules"
+
+# Default behavior when no rule matches
+default: deny
+
+# Principal configuration
+principals:
+  - id: "agent:secureclaw"
+    description: "SecureClaw agent principal"
+
+# Resource patterns
+resources:
+  # Safe read-only operations
+  safe_reads:
+    patterns:
+      - "*.md"
+      - "*.txt"
+      - "*.json"
+      - "*.yaml"
+      - "*.yml"
+      - "*.toml"
+      - "src/**"
+      - "lib/**"
+      - "docs/**"
+      - "README*"
+      - "LICENSE*"
+      - "package.json"
+      - "tsconfig.json"
+      - "*.config.js"
+      - "*.config.ts"
+
+  # Sensitive paths - always deny
+  sensitive:
+    patterns:
+      - "**/.ssh/**"
+      - "**/.aws/**"
+      - "**/.gcp/**"
+      - "**/.azure/**"
+      - "**/id_rsa*"
+      - "**/id_ed25519*"
+      - "**/*.pem"
+      - "**/*.key"
+      - "**/.env*"
+      - "**/credentials*"
+      - "**/secrets*"
+      - "**/tokens*"
+      - "/etc/passwd"
+      - "/etc/shadow"
+      - "**/node_modules/**"
+
+# Authorization rules (evaluated in order)
+rules:
+  # Block all access to sensitive resources
+  - id: "deny-sensitive"
+    effect: deny
+    actions:
+      - "*"
+    resources:
+      - "$sensitive"
+    reason: "Access to sensitive resources is blocked"
+
+  # Allow reading safe file types
+  - id: "allow-safe-reads"
+    effect: allow
+    actions:
+      - "fs.read"
+      - "fs.list"
+    resources:
+      - "$safe_reads"
+    reason: "Safe read-only operations"
+
+  # Allow search operations in project directories
+  - id: "allow-search"
+    effect: allow
+    actions:
+      - "fs.list"
+    resources:
+      - "**"
+    conditions:
+      - type: "path_prefix"
+        value: "./"
+    reason: "Search within project"
+
+  # Block shell commands by default (very dangerous)
+  - id: "deny-shell"
+    effect: deny
+    actions:
+      - "shell.exec"
+    resources:
+      - "*"
+    reason: "Shell execution requires explicit policy override"
+
+  # Block network requests by default
+  - id: "deny-network"
+    effect: deny
+    actions:
+      - "http.request"
+    resources:
+      - "*"
+    reason: "Network access requires explicit policy override"
+
+  # Block browser automation by default
+  - id: "deny-browser"
+    effect: deny
+    actions:
+      - "browser.*"
+    resources:
+      - "*"
+    reason: "Browser automation requires explicit policy override"
+
+  # Block agent spawning by default
+  - id: "deny-spawn"
+    effect: deny
+    actions:
+      - "agent.spawn"
+    resources:
+      - "*"
+    reason: "Agent spawning requires explicit policy override"
+
+# Audit configuration
+audit:
+  enabled: true
+  log_allowed: true
+  log_denied: true
+  redact_sensitive: true
+
+# Rate limiting (optional)
+rate_limits:
+  # Max tool calls per minute
+  global: 60
+  # Per-action limits
+  actions:
+    "shell.exec": 10
+    "http.request": 30
+    "browser.*": 20

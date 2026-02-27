@@ -1,0 +1,244 @@
+# SecureClaw Policy: Coding Agent
+# Allows typical software development operations
+#
+# Use case: AI coding assistants (Claude Code, Cursor, Copilot, etc.)
+# Risk level: Medium - allows file writes and controlled shell access
+
+version: "1.0"
+name: "coding-agent"
+description: "Policy for AI coding assistants with file and shell access"
+
+default: deny
+
+principals:
+  - id: "agent:coding"
+    description: "Coding assistant agent"
+
+resources:
+  # Source code files
+  source_code:
+    patterns:
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.js"
+      - "**/*.jsx"
+      - "**/*.py"
+      - "**/*.rs"
+      - "**/*.go"
+      - "**/*.java"
+      - "**/*.c"
+      - "**/*.cpp"
+      - "**/*.h"
+      - "**/*.hpp"
+      - "**/*.swift"
+      - "**/*.kt"
+      - "**/*.rb"
+      - "**/*.php"
+      - "**/*.cs"
+      - "**/*.vue"
+      - "**/*.svelte"
+
+  # Config and docs
+  config_docs:
+    patterns:
+      - "**/*.json"
+      - "**/*.yaml"
+      - "**/*.yml"
+      - "**/*.toml"
+      - "**/*.md"
+      - "**/*.mdx"
+      - "**/*.txt"
+      - "**/*.xml"
+      - "**/*.html"
+      - "**/*.css"
+      - "**/*.scss"
+      - "**/*.less"
+      - "**/Dockerfile*"
+      - "**/.docker*"
+      - "**/Makefile"
+      - "**/.gitignore"
+      - "**/.gitattributes"
+
+  # Test files
+  tests:
+    patterns:
+      - "**/*.test.*"
+      - "**/*.spec.*"
+      - "**/test/**"
+      - "**/tests/**"
+      - "**/__tests__/**"
+
+  # Build artifacts - read only
+  build_output:
+    patterns:
+      - "dist/**"
+      - "build/**"
+      - "out/**"
+      - ".next/**"
+      - "target/**"
+
+  # Sensitive - always block
+  sensitive:
+    patterns:
+      - "**/.ssh/**"
+      - "**/.aws/**"
+      - "**/.gcp/**"
+      - "**/.azure/**"
+      - "**/id_rsa*"
+      - "**/id_ed25519*"
+      - "**/*.pem"
+      - "**/*.key"
+      - "**/.env.local"
+      - "**/.env.production"
+      - "**/credentials*"
+      - "**/secrets*"
+      - "**/node_modules/**"
+
+  # Safe shell commands
+  safe_commands:
+    patterns:
+      - "npm *"
+      - "pnpm *"
+      - "yarn *"
+      - "bun *"
+      - "npx *"
+      - "node *"
+      - "python *"
+      - "pip *"
+      - "cargo *"
+      - "go *"
+      - "make *"
+      - "git status*"
+      - "git log*"
+      - "git diff*"
+      - "git branch*"
+      - "git show*"
+      - "ls *"
+      - "cat *"
+      - "head *"
+      - "tail *"
+      - "wc *"
+      - "grep *"
+      - "find *"
+      - "tree *"
+      - "pwd"
+      - "echo *"
+      - "which *"
+      - "type *"
+
+rules:
+  # Block sensitive resources
+  - id: "deny-sensitive"
+    effect: deny
+    actions: ["*"]
+    resources: ["$sensitive"]
+    reason: "Sensitive resources blocked"
+
+  # Allow reading all code and config
+  - id: "allow-read-code"
+    effect: allow
+    actions: ["fs.read", "fs.list"]
+    resources:
+      - "$source_code"
+      - "$config_docs"
+      - "$tests"
+      - "$build_output"
+    reason: "Read source code and config"
+
+  # Allow writing source code and tests
+  - id: "allow-write-code"
+    effect: allow
+    actions: ["fs.write"]
+    resources:
+      - "$source_code"
+      - "$config_docs"
+      - "$tests"
+    reason: "Write source code"
+
+  # Allow safe shell commands
+  - id: "allow-safe-shell"
+    effect: allow
+    actions: ["shell.exec"]
+    resources: ["$safe_commands"]
+    reason: "Safe development commands"
+
+  # Allow git operations (except push/force)
+  - id: "allow-git-read"
+    effect: allow
+    actions: ["shell.exec"]
+    resources:
+      - "git status*"
+      - "git log*"
+      - "git diff*"
+      - "git branch*"
+      - "git show*"
+      - "git fetch*"
+      - "git pull*"
+    reason: "Git read operations"
+
+  # Block dangerous git commands
+  - id: "deny-git-dangerous"
+    effect: deny
+    actions: ["shell.exec"]
+    resources:
+      - "git push --force*"
+      - "git reset --hard*"
+      - "git clean -fd*"
+      - "git rebase*"
+    reason: "Dangerous git operations require manual approval"
+
+  # Allow running tests
+  - id: "allow-tests"
+    effect: allow
+    actions: ["shell.exec"]
+    resources:
+      - "npm test*"
+      - "npm run test*"
+      - "pnpm test*"
+      - "yarn test*"
+      - "pytest*"
+      - "cargo test*"
+      - "go test*"
+      - "jest*"
+      - "vitest*"
+    reason: "Run test suites"
+
+  # Allow build commands
+  - id: "allow-build"
+    effect: allow
+    actions: ["shell.exec"]
+    resources:
+      - "npm run build*"
+      - "pnpm build*"
+      - "yarn build*"
+      - "cargo build*"
+      - "go build*"
+      - "make build*"
+      - "make all*"
+    reason: "Build project"
+
+  # Block network access (no external API calls)
+  - id: "deny-network"
+    effect: deny
+    actions: ["http.request"]
+    resources: ["*"]
+    reason: "Network access blocked for coding agent"
+
+  # Block browser automation
+  - id: "deny-browser"
+    effect: deny
+    actions: ["browser.*"]
+    resources: ["*"]
+    reason: "Browser access blocked for coding agent"
+
+audit:
+  enabled: true
+  log_allowed: true
+  log_denied: true
+  redact_sensitive: true
+
+rate_limits:
+  global: 120
+  actions:
+    "shell.exec": 30
+    "fs.write": 60

@@ -1,0 +1,156 @@
+# SecureClaw Policy: Browser Agent
+# Allows browser automation with domain restrictions
+#
+# Use case: Web scraping, form filling, testing automation
+# Risk level: High - browser access can leak credentials
+
+version: "1.0"
+name: "browser-agent"
+description: "Policy for browser automation agents with domain allowlisting"
+
+default: deny
+
+principals:
+  - id: "agent:browser"
+    description: "Browser automation agent"
+
+resources:
+  # Allowed domains for navigation
+  allowed_domains:
+    patterns:
+      - "https://example.com/**"
+      - "https://*.example.com/**"
+      - "https://docs.example.com/**"
+      # Add your allowed domains here
+      # - "https://your-app.com/**"
+      # - "https://staging.your-app.com/**"
+
+  # Blocked domains (even if in allowed patterns)
+  blocked_domains:
+    patterns:
+      - "**/login**"
+      - "**/signin**"
+      - "**/auth**"
+      - "**/oauth**"
+      - "**/password**"
+      - "**/credential**"
+      - "**/admin**"
+      - "**/settings/security**"
+      - "https://accounts.google.com/**"
+      - "https://login.microsoftonline.com/**"
+      - "https://github.com/login**"
+      - "https://github.com/settings/**"
+
+  # Safe for screenshots (any visible page)
+  screenshot_safe:
+    patterns:
+      - "browser:current"
+
+  # Sensitive file paths
+  sensitive_files:
+    patterns:
+      - "**/.ssh/**"
+      - "**/.aws/**"
+      - "**/credentials*"
+      - "**/.env*"
+
+rules:
+  # Block access to authentication pages
+  - id: "deny-auth-pages"
+    effect: deny
+    actions:
+      - "browser.navigate"
+      - "browser.interact"
+    resources: ["$blocked_domains"]
+    reason: "Authentication pages blocked for security"
+
+  # Allow navigation to allowed domains
+  - id: "allow-navigation"
+    effect: allow
+    actions: ["browser.navigate"]
+    resources: ["$allowed_domains"]
+    reason: "Navigate to allowed domains"
+
+  # Allow screenshots of current page
+  - id: "allow-screenshot"
+    effect: allow
+    actions: ["browser.screenshot"]
+    resources: ["$screenshot_safe"]
+    reason: "Capture screenshots"
+
+  # Allow interactions on allowed domains
+  - id: "allow-interact"
+    effect: allow
+    actions:
+      - "browser.interact"
+      - "browser.click"
+      - "browser.type"
+      - "browser.scroll"
+    resources: ["$allowed_domains"]
+    conditions:
+      # Block typing in password fields
+      - type: "not_selector"
+        value: "input[type='password']"
+    reason: "Interact with allowed pages"
+
+  # Block file system access
+  - id: "deny-fs"
+    effect: deny
+    actions:
+      - "fs.read"
+      - "fs.write"
+      - "fs.list"
+    resources: ["*"]
+    reason: "Browser agent has no file system access"
+
+  # Block shell access
+  - id: "deny-shell"
+    effect: deny
+    actions: ["shell.exec"]
+    resources: ["*"]
+    reason: "Browser agent has no shell access"
+
+  # Allow limited HTTP for API calls (same domain)
+  - id: "allow-api"
+    effect: allow
+    actions: ["http.request"]
+    resources:
+      - "https://api.example.com/**"
+      # Add your API endpoints here
+    reason: "API calls to allowed endpoints"
+
+  # Block agent spawning
+  - id: "deny-spawn"
+    effect: deny
+    actions: ["agent.spawn"]
+    resources: ["*"]
+    reason: "Agent spawning blocked"
+
+audit:
+  enabled: true
+  log_allowed: true
+  log_denied: true
+  redact_sensitive: true
+  # Capture DOM snapshots for verification
+  capture_snapshots: true
+  snapshot_events:
+    - "browser.navigate"
+    - "browser.interact"
+
+rate_limits:
+  global: 60
+  actions:
+    "browser.navigate": 10
+    "browser.interact": 30
+    "browser.screenshot": 20
+    "http.request": 20
+
+# Post-execution verification settings
+verification:
+  enabled: true
+  # Verify DOM changes after interactions
+  dom_diff: true
+  # Alert on unexpected network requests
+  network_monitor: true
+  # Block if page navigates to blocked domain
+  navigation_guard: true
