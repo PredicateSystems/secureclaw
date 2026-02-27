@@ -12,39 +12,39 @@ import { extractAction, extractResource } from "./resource-extractor.js";
  * For live sidecar tests, see the e2e test suite.
  */
 
-// Create mock function outside vi.mock for access
-const mockGuardOrThrow = vi.fn();
+// Use vi.hoisted to define mocks that will be available when vi.mock is hoisted
+const { mockGuardOrThrow, ActionDeniedError, SidecarUnavailableError } = vi.hoisted(() => {
+  const mockGuardOrThrow = vi.fn();
 
-// Mock error class
-class MockActionDeniedError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ActionDeniedError";
+  class ActionDeniedError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = "ActionDeniedError";
+    }
   }
-}
 
-// Mock predicate-claw SDK
-vi.mock("predicate-claw", () => {
-  class MockSidecarUnavailableError extends Error {
+  class SidecarUnavailableError extends Error {
     constructor(message: string) {
       super(message);
       this.name = "SidecarUnavailableError";
     }
   }
 
+  return { mockGuardOrThrow, ActionDeniedError, SidecarUnavailableError };
+});
+
+// Mock predicate-claw SDK
+vi.mock("predicate-claw", () => {
   class MockGuardedProvider {
     guardOrThrow = mockGuardOrThrow;
   }
 
   return {
     GuardedProvider: MockGuardedProvider,
-    ActionDeniedError: MockActionDeniedError,
-    SidecarUnavailableError: MockSidecarUnavailableError,
+    ActionDeniedError,
+    SidecarUnavailableError,
   };
 });
-
-// Alias for use in tests
-const ActionDeniedError = MockActionDeniedError;
 
 describe("SecureClaw Integration", () => {
   // Track all hook registrations

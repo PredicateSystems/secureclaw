@@ -9,23 +9,26 @@ import type {
 } from "../types.js";
 import { createSecureClawPlugin } from "./plugin.js";
 
-// Create mock function outside vi.mock for access
-const mockGuardOrThrow = vi.fn();
+// Use vi.hoisted to define mocks that will be available when vi.mock is hoisted
+const { mockGuardOrThrow, ActionDeniedError, SidecarUnavailableError } = vi.hoisted(() => {
+  const mockGuardOrThrow = vi.fn();
 
-// Mock error classes
-class MockActionDeniedError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ActionDeniedError";
+  class ActionDeniedError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = "ActionDeniedError";
+    }
   }
-}
 
-class MockSidecarUnavailableError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "SidecarUnavailableError";
+  class SidecarUnavailableError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = "SidecarUnavailableError";
+    }
   }
-}
+
+  return { mockGuardOrThrow, ActionDeniedError, SidecarUnavailableError };
+});
 
 // Mock predicate-claw SDK
 vi.mock("predicate-claw", () => {
@@ -35,14 +38,10 @@ vi.mock("predicate-claw", () => {
 
   return {
     GuardedProvider: MockGuardedProvider,
-    ActionDeniedError: MockActionDeniedError,
-    SidecarUnavailableError: MockSidecarUnavailableError,
+    ActionDeniedError,
+    SidecarUnavailableError,
   };
 });
-
-// Aliases for use in tests
-const ActionDeniedError = MockActionDeniedError;
-const SidecarUnavailableError = MockSidecarUnavailableError;
 
 describe("SecureClaw Plugin", () => {
   beforeEach(() => {
@@ -60,7 +59,7 @@ describe("SecureClaw Plugin", () => {
       expect(plugin.id).toBe("secureclaw");
       expect(plugin.name).toBe("SecureClaw");
       expect(plugin.version).toBe("1.0.0");
-      expect(plugin.description).toContain("zero-trust");
+      expect(plugin.description?.toLowerCase()).toContain("zero-trust");
     });
 
     it("accepts custom options", () => {
