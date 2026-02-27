@@ -59,8 +59,6 @@ export function mergeConfig(
 ): SecureClawConfig {
   return {
     ...base,
-    ...Object.fromEntries(
-      Object.entries(overrides).filter(([_, v]) => v !== undefined),
-    ),
+    ...Object.fromEntries(Object.entries(overrides).filter(([_, v]) => v !== undefined)),
   } as SecureClawConfig;
 }

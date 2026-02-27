@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "description": "SecureClaw: Zero-trust security fork of OpenClaw with pre-authorization and post-verification",
   "keywords": [
+    "agentic-security",
     "ai-agent",
-    "security",
-    "zero-trust",
+    "authorization",
     "openclaw",
     "predicate",
-    "authorization",
-    "agentic-security"
+    "security",
+    "zero-trust"
   ],
   "homepage": "https://predicatesystems.ai/docs/secure-claw",
   "bugs": {
@@ -157,7 +157,6 @@
   },
   "dependencies": {
     "@agentclientprotocol/sdk": "0.14.1",
-    "predicate-claw": "^0.1.0",
     "@aws-sdk/client-bedrock": "^3.998.0",
     "@buape/carbon": "0.0.0-beta-20260216184201",
     "@clack/prompts": "^1.0.1",
@@ -202,6 +201,7 @@
     "osc-progress": "^0.3.0",
     "pdfjs-dist": "^5.4.624",
     "playwright-core": "1.58.2",
+    "predicate-claw": "^0.1.0",
     "qrcode-terminal": "^0.12.0",
     "sharp": "^0.34.5",
     "sqlite-vec": "0.1.7-alpha.2",

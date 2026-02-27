@@ -9,7 +9,12 @@
 export { createSecureClawPlugin, type SecureClawPluginOptions } from "./plugin.js";
 
 // Resource extraction utilities
-export { extractResource, extractAction, redactResource, isSensitiveResource } from "./resource-extractor.js";
+export {
+  extractResource,
+  extractAction,
+  redactResource,
+  isSensitiveResource,
+} from "./resource-extractor.js";
 
 // Configuration
 export type { SecureClawConfig } from "./config.js";

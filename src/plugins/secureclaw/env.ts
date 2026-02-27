@@ -65,8 +65,14 @@ export function printSecureClawConfig(): void {
   const env = getSecureClawEnv();
   console.log("SecureClaw Configuration:");
   console.log("  SECURECLAW_PRINCIPAL:", env.SECURECLAW_PRINCIPAL ?? "(default: agent:secureclaw)");
-  console.log("  SECURECLAW_POLICY:", env.SECURECLAW_POLICY ?? "(default: ./policies/default.yaml)");
-  console.log("  PREDICATE_SIDECAR_URL:", env.PREDICATE_SIDECAR_URL ?? "(default: http://127.0.0.1:9120)");
+  console.log(
+    "  SECURECLAW_POLICY:",
+    env.SECURECLAW_POLICY ?? "(default: ./policies/default.yaml)",
+  );
+  console.log(
+    "  PREDICATE_SIDECAR_URL:",
+    env.PREDICATE_SIDECAR_URL ?? "(default: http://127.0.0.1:9120)",
+  );
   console.log("  SECURECLAW_FAIL_OPEN:", env.SECURECLAW_FAIL_OPEN ?? "(default: false)");
   console.log("  SECURECLAW_VERIFY:", env.SECURECLAW_VERIFY ?? "(default: true)");
   console.log("  SECURECLAW_VERBOSE:", env.SECURECLAW_VERBOSE ?? "(default: false)");

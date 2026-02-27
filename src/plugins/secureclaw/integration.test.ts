@@ -32,7 +32,6 @@ vi.mock("predicate-claw", () => {
   const mockGuardOrThrow = vi.fn();
 
   class MockGuardedProvider {
-    constructor(_options: unknown) {}
     guardOrThrow = mockGuardOrThrow;
   }
 
@@ -85,7 +84,9 @@ describe("SecureClaw Integration", () => {
         }),
       };
 
-      await plugin.activate?.(mockApi as any);
+      await plugin.activate?.(
+        mockApi as unknown as Parameters<NonNullable<typeof plugin.activate>>[0],
+      );
 
       // Mock SDK to deny .ssh access
       mockGuardOrThrow.mockRejectedValueOnce(new ActionDeniedError("sensitive_resource_blocked"));
@@ -128,14 +129,13 @@ describe("SecureClaw Integration", () => {
         }),
       };
 
-      await plugin.activate?.(mockApi as any);
+      await plugin.activate?.(
+        mockApi as unknown as Parameters<NonNullable<typeof plugin.activate>>[0],
+      );
 
       // Start session
       const sessionStart = hooks.get("session_start")!;
-      sessionStart(
-        { sessionId: "integration-test-123" },
-        { sessionId: "integration-test-123" },
-      );
+      sessionStart({ sessionId: "integration-test-123" }, { sessionId: "integration-test-123" });
 
       // Mock SDK to allow with mandate ID
       mockGuardOrThrow.mockResolvedValue("mandate-abc");
@@ -162,9 +162,7 @@ describe("SecureClaw Integration", () => {
       );
 
       // Verify metrics logged
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.stringContaining("Tool metrics"),
-      );
+      expect(mockLogger.info).toHaveBeenCalledWith(expect.stringContaining("Tool metrics"));
     });
 
     it("handles shell command authorization", async () => {
@@ -178,7 +176,9 @@ describe("SecureClaw Integration", () => {
         }),
       };
 
-      await plugin.activate?.(mockApi as any);
+      await plugin.activate?.(
+        mockApi as unknown as Parameters<NonNullable<typeof plugin.activate>>[0],
+      );
 
       // Test dangerous command - should be denied
       mockGuardOrThrow.mockRejectedValueOnce(new ActionDeniedError("dangerous_shell_command"));
@@ -245,10 +245,14 @@ describe("SecureClaw Integration", () => {
       expect(extractResource("Bash", { command: "npm install" })).toBe("npm install");
 
       // URL
-      expect(extractResource("WebFetch", { url: "https://api.example.com" })).toBe("https://api.example.com");
+      expect(extractResource("WebFetch", { url: "https://api.example.com" })).toBe(
+        "https://api.example.com",
+      );
 
       // Browser navigation
-      expect(extractResource("computer-use:navigate", { url: "https://app.example.com" })).toBe("https://app.example.com");
+      expect(extractResource("computer-use:navigate", { url: "https://app.example.com" })).toBe(
+        "https://app.example.com",
+      );
     });
   });
 
@@ -267,7 +271,9 @@ describe("SecureClaw Integration", () => {
         }),
       };
 
-      await plugin.activate?.(mockApi as any);
+      await plugin.activate?.(
+        mockApi as unknown as Parameters<NonNullable<typeof plugin.activate>>[0],
+      );
 
       // Mock timeout via generic error (SDK converts to appropriate error)
       mockGuardOrThrow.mockRejectedValueOnce(new Error("Timeout"));
@@ -303,7 +309,9 @@ describe("SecureClaw Integration", () => {
         }),
       };
 
-      await plugin.activate?.(mockApi as any);
+      await plugin.activate?.(
+        mockApi as unknown as Parameters<NonNullable<typeof plugin.activate>>[0],
+      );
 
       // Mock SDK throwing ActionDeniedError (policy denied)
       mockGuardOrThrow.mockRejectedValueOnce(new ActionDeniedError("no_matching_allow_rule"));

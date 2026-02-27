@@ -54,11 +54,15 @@ describe("extractResource", () => {
     });
 
     it("extracts file_path from Write params", () => {
-      expect(extractResource("Write", { file_path: "/src/new.ts", content: "..." })).toBe("/src/new.ts");
+      expect(extractResource("Write", { file_path: "/src/new.ts", content: "..." })).toBe(
+        "/src/new.ts",
+      );
     });
 
     it("extracts file_path from Edit params", () => {
-      expect(extractResource("Edit", { file_path: "/src/edit.ts", old_string: "a", new_string: "b" })).toBe("/src/edit.ts");
+      expect(
+        extractResource("Edit", { file_path: "/src/edit.ts", old_string: "a", new_string: "b" }),
+      ).toBe("/src/edit.ts");
     });
 
     it("handles missing file path", () => {
@@ -82,7 +86,8 @@ describe("extractResource", () => {
     });
 
     it("truncates long commands", () => {
-      const longCommand = "npm run build && npm test && npm run lint && npm run format && echo done";
+      const longCommand =
+        "npm run build && npm test && npm run lint && npm run format && echo done";
       const result = extractResource("Bash", { command: longCommand });
       expect(result.length).toBeLessThanOrEqual(100);
       expect(result).toContain("npm");
@@ -95,17 +100,23 @@ describe("extractResource", () => {
 
   describe("network operations", () => {
     it("extracts URL from WebFetch params", () => {
-      expect(extractResource("WebFetch", { url: "https://example.com/api" })).toBe("https://example.com/api");
+      expect(extractResource("WebFetch", { url: "https://example.com/api" })).toBe(
+        "https://example.com/api",
+      );
     });
 
     it("extracts query from WebSearch params", () => {
-      expect(extractResource("WebSearch", { query: "typescript tutorial" })).toBe("search:typescript tutorial");
+      expect(extractResource("WebSearch", { query: "typescript tutorial" })).toBe(
+        "search:typescript tutorial",
+      );
     });
   });
 
   describe("browser operations", () => {
     it("extracts URL from navigate params", () => {
-      expect(extractResource("computer-use:navigate", { url: "https://example.com" })).toBe("https://example.com");
+      expect(extractResource("computer-use:navigate", { url: "https://example.com" })).toBe(
+        "https://example.com",
+      );
     });
 
     it("returns browser:current for other browser operations", () => {

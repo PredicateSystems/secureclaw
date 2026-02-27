@@ -59,7 +59,22 @@
       "effect": "allow",
       "principals": ["agent:*"],
       "actions": ["fs.read", "fs.list"],
-      "resources": ["*.ts", "*.tsx", "*.js", "*.jsx", "*.py", "*.rs", "*.go", "*.java", "*.md", "*.json", "*.yaml", "*.yml", "*.toml", "*.txt"],
+      "resources": [
+        "*.ts",
+        "*.tsx",
+        "*.js",
+        "*.jsx",
+        "*.py",
+        "*.rs",
+        "*.go",
+        "*.java",
+        "*.md",
+        "*.json",
+        "*.yaml",
+        "*.yml",
+        "*.toml",
+        "*.txt"
+      ],
       "required_labels": [],
       "max_delegation_depth": null
     },

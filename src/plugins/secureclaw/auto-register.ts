@@ -5,8 +5,8 @@
  * auto-register the SecureClaw security plugin.
  */
 
-import { createSecureClawPlugin } from "./plugin.js";
 import { isSecureClawEnabled } from "./env.js";
+import { createSecureClawPlugin } from "./plugin.js";
 
 /**
  * Auto-register SecureClaw with the plugin system.

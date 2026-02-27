@@ -12,7 +12,7 @@
 #   docker-compose -f docker-compose.demo.yml up sidecar
 #   # Then in another terminal, run SecureClaw locally
 
-version: '3.8'
+version: "3.8"
 
 services:
   # ============================================================================
@@ -37,7 +37,7 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
-      start_period: 30s  # Rust build takes time on first run
+      start_period: 30s # Rust build takes time on first run
     restart: unless-stopped
 
   # ============================================================================

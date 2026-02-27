@@ -5,7 +5,17 @@
       "effect": "deny",
       "principals": ["*"],
       "actions": ["browser.navigate", "browser.interact"],
-      "resources": ["*login*", "*signin*", "*auth*", "*oauth*", "*password*", "https://accounts.google.com/*", "https://login.microsoftonline.com/*", "https://github.com/login*", "https://github.com/settings/*"],
+      "resources": [
+        "*login*",
+        "*signin*",
+        "*auth*",
+        "*oauth*",
+        "*password*",
+        "https://accounts.google.com/*",
+        "https://login.microsoftonline.com/*",
+        "https://github.com/login*",
+        "https://github.com/settings/*"
+      ],
       "required_labels": [],
       "max_delegation_depth": null
     },

@@ -51,10 +51,7 @@ export function extractAction(toolName: string): string {
 /**
  * Extract the resource identifier from tool parameters.
  */
-export function extractResource(
-  toolName: string,
-  params: Record<string, unknown>,
-): string {
+export function extractResource(toolName: string, params: Record<string, unknown>): string {
   switch (toolName) {
     // File operations - extract path
     case "Read":
@@ -65,9 +62,7 @@ export function extractResource(
 
     // Glob - extract pattern as resource
     case "Glob":
-      return typeof params.pattern === "string"
-        ? params.pattern
-        : String(params.pattern ?? "*");
+      return typeof params.pattern === "string" ? params.pattern : "*";
 
     // Bash - extract command (first 100 chars for safety)
     case "Bash":
@@ -101,9 +96,7 @@ export function extractResource(
     // Notebook operations
     case "NotebookRead":
     case "NotebookEdit":
-      return typeof params.notebook_path === "string"
-        ? params.notebook_path
-        : "notebook:unknown";
+      return typeof params.notebook_path === "string" ? params.notebook_path : "notebook:unknown";
 
     // MCP tools - extract tool name and server
     case "mcp_tool":
@@ -125,7 +118,7 @@ function extractFilePath(params: Record<string, unknown>): string {
   const pathKeys = ["file_path", "filePath", "path", "file", "filename"];
   for (const key of pathKeys) {
     if (typeof params[key] === "string") {
-      return params[key] as string;
+      return params[key];
     }
   }
   return "file:unknown";
@@ -152,8 +145,18 @@ function extractBashCommand(params: Record<string, unknown>): string {
 }
 
 function extractMcpResource(params: Record<string, unknown>): string {
-  const server = params.server ?? params.mcp_server ?? "unknown";
-  const tool = params.tool ?? params.tool_name ?? "unknown";
+  const server =
+    typeof params.server === "string"
+      ? params.server
+      : typeof params.mcp_server === "string"
+        ? params.mcp_server
+        : "unknown";
+  const tool =
+    typeof params.tool === "string"
+      ? params.tool
+      : typeof params.tool_name === "string"
+        ? params.tool_name
+        : "unknown";
   return `mcp:${server}/${tool}`;
 }
 

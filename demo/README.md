@@ -46,6 +46,7 @@ The quickest way to see the demo - runs a simulated walkthrough.
 ```
 
 This script:
+
 - Creates a fake `~/.aws/credentials` file in a temp directory
 - Creates a malicious document with a hidden prompt injection
 - Walks through what happens WITHOUT SecureClaw (attack succeeds)
@@ -63,6 +64,7 @@ For a real end-to-end demo with the actual rust-predicate-authorityd sidecar.
 ### Prerequisites
 
 1. Build the rust-predicate-authorityd sidecar:
+
    ```bash
    cd /path/to/rust-predicate-authorityd
    cargo build --release
@@ -77,6 +79,7 @@ For a real end-to-end demo with the actual rust-predicate-authorityd sidecar.
 ### Running the Live Demo
 
 **Terminal 1 - Start the Sidecar:**
+
 ```bash
 cd /path/to/rust-predicate-authorityd
 cargo run --release -- \
@@ -85,23 +88,27 @@ cargo run --release -- \
 ```
 
 You should see:
+
 ```
 [INFO] Predicate Authority Sidecar starting on :8787
 [INFO] Loaded policy with X rules
 ```
 
 **Terminal 2 - Run SecureClaw:**
+
 ```bash
 cd /path/to/openclaw
 SECURECLAW_VERBOSE=true pnpm openclaw
 ```
 
 **Terminal 2 - Try the Attack:**
+
 ```
 > Summarize the document at ./demo/malicious-doc.txt
 ```
 
 **Expected Output:**
+
 ```
 [SecureClaw] Pre-auth: fs.read on ~/.aws/credentials
 [SecureClaw] BLOCKED: fs.read - sensitive_resource_blocked
@@ -122,12 +129,14 @@ SECURECLAW_VERBOSE=true pnpm openclaw
 ```
 
 In **fail-closed mode** (default), you'll see:
+
 ```
 [SecureClaw] Sidecar error (fail-closed): Connection refused
 [SecureClaw] Authorization service unavailable (fail-closed mode)
 ```
 
 In **fail-open mode**, actions will be allowed with a warning:
+
 ```
 [SecureClaw] Sidecar error (fail-open): Connection refused
 ```
@@ -136,11 +145,11 @@ In **fail-open mode**, actions will be allowed with a warning:
 
 ## Docker Files
 
-| File | Description |
-|------|-------------|
-| `docker-compose.demo.yml` | Demo orchestration |
-| `docker/sidecar.Dockerfile` | Builds rust-predicate-authorityd from source |
-| `docker/secureclaw.Dockerfile` | Builds SecureClaw image |
+| File                           | Description                                  |
+| ------------------------------ | -------------------------------------------- |
+| `docker-compose.demo.yml`      | Demo orchestration                           |
+| `docker/sidecar.Dockerfile`    | Builds rust-predicate-authorityd from source |
+| `docker/secureclaw.Dockerfile` | Builds SecureClaw image                      |
 
 ### Building Images Manually
 
@@ -156,13 +165,13 @@ docker build -f docker/secureclaw.Dockerfile -t secureclaw:demo .
 
 ## Key Files
 
-| File | Description |
-|------|-------------|
-| `demo/hack-vs-fix.sh` | Interactive simulation script |
-| `demo/malicious-doc.txt` | Document with hidden prompt injection |
-| `policies/default.json` | Default policy (blocks sensitive resources) |
-| `policies/examples/coding-agent.json` | Policy for coding assistants |
-| `policies/examples/browser-agent.json` | Policy for browser automation |
+| File                                   | Description                                 |
+| -------------------------------------- | ------------------------------------------- |
+| `demo/hack-vs-fix.sh`                  | Interactive simulation script               |
+| `demo/malicious-doc.txt`               | Document with hidden prompt injection       |
+| `policies/default.json`                | Default policy (blocks sensitive resources) |
+| `policies/examples/coding-agent.json`  | Policy for coding assistants                |
+| `policies/examples/browser-agent.json` | Policy for browser automation               |
 
 ---
 
@@ -206,13 +215,13 @@ docker build -f docker/secureclaw.Dockerfile -t secureclaw:demo .
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SECURECLAW_PRINCIPAL` | `agent:secureclaw` | Agent identity |
-| `SECURECLAW_POLICY` | `./policies/default.json` | Policy file path |
-| `PREDICATE_SIDECAR_URL` | `http://127.0.0.1:8787` | Sidecar endpoint |
-| `SECURECLAW_FAIL_OPEN` | `false` | Allow actions when sidecar is down |
-| `SECURECLAW_VERBOSE` | `false` | Enable verbose logging |
+| Variable                | Default                   | Description                        |
+| ----------------------- | ------------------------- | ---------------------------------- |
+| `SECURECLAW_PRINCIPAL`  | `agent:secureclaw`        | Agent identity                     |
+| `SECURECLAW_POLICY`     | `./policies/default.json` | Policy file path                   |
+| `PREDICATE_SIDECAR_URL` | `http://127.0.0.1:8787`   | Sidecar endpoint                   |
+| `SECURECLAW_FAIL_OPEN`  | `false`                   | Allow actions when sidecar is down |
+| `SECURECLAW_VERBOSE`    | `false`                   | Enable verbose logging             |
 
 ---
 
@@ -225,10 +234,12 @@ asciinema rec demo.cast
 ```
 
 Recommended split-screen setup:
+
 - **Left terminal**: SecureClaw running with `SECURECLAW_VERBOSE=true`
 - **Right terminal**: Sidecar logs
 
 Show:
+
 1. Normal operation (reading safe files) - ALLOWED
 2. Prompt injection attempt (reading ~/.aws/credentials) - BLOCKED
 3. Agent continues without leaked data

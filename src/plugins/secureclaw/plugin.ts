@@ -18,7 +18,6 @@ import {
   type DecisionTelemetryEvent,
   type DecisionAuditExporter,
 } from "predicate-claw";
-
 import type {
   OpenClawPluginDefinition,
   OpenClawPluginApi,
@@ -30,17 +29,8 @@ import type {
   PluginHookToolContext,
   PluginHookSessionContext,
 } from "../types.js";
-import {
-  type SecureClawConfig,
-  defaultConfig,
-  loadConfigFromEnv,
-  mergeConfig,
-} from "./config.js";
-import {
-  extractAction,
-  extractResource,
-  redactResource,
-} from "./resource-extractor.js";
+import { type SecureClawConfig, defaultConfig, loadConfigFromEnv, mergeConfig } from "./config.js";
+import { extractAction, extractResource, redactResource } from "./resource-extractor.js";
 
 export interface SecureClawPluginOptions extends Partial<SecureClawConfig> {}
 
@@ -72,15 +62,22 @@ export function createSecureClawPlugin(
       const telemetry: GuardTelemetry = {
         onDecision(event: DecisionTelemetryEvent) {
           if (config.verbose) {
-            const status = event.outcome === "allow" ? "ALLOWED" : event.outcome === "deny" ? "BLOCKED" : "ERROR";
-            log.info(`[SecureClaw] ${status}: ${event.action} on ${event.resource} (${event.reason ?? "no reason"})`);
+            const status =
+              event.outcome === "allow"
+                ? "ALLOWED"
+                : event.outcome === "deny"
+                  ? "BLOCKED"
+                  : "ERROR";
+            log.info(
+              `[SecureClaw] ${status}: ${event.action} on ${event.resource} (${event.reason ?? "no reason"})`,
+            );
           }
         },
       };
 
       // Create audit exporter if needed
       const auditExporter: DecisionAuditExporter = {
-        async exportDecision(event: DecisionTelemetryEvent) {
+        async exportDecision(_event: DecisionTelemetryEvent) {
           // TODO: Send to centralized audit log (e.g., via OTLP)
           // For now, this is a no-op placeholder
           // In production:
@@ -116,7 +113,7 @@ export function createSecureClawPlugin(
       // =======================================================================
       api.on(
         "session_start",
-        (event: PluginHookSessionStartEvent, ctx: PluginHookSessionContext) => {
+        (event: PluginHookSessionStartEvent, _ctx: PluginHookSessionContext) => {
           currentSessionId = event.sessionId;
           sessionStartTime = Date.now();
           toolCallMetrics.clear();
@@ -133,7 +130,7 @@ export function createSecureClawPlugin(
       // =======================================================================
       api.on(
         "session_end",
-        (event: PluginHookSessionEndEvent, ctx: PluginHookSessionContext) => {
+        (event: PluginHookSessionEndEvent, _ctx: PluginHookSessionContext) => {
           const duration = sessionStartTime ? Date.now() - sessionStartTime : 0;
 
           if (config.verbose) {
@@ -180,7 +177,7 @@ export function createSecureClawPlugin(
             const guardRequest: GuardRequest = {
               action,
               resource,
-              args: params as Record<string, unknown>,
+              args: params,
               context: {
                 session_id: currentSessionId ?? ctx.sessionKey,
                 tenant_id: config.tenantId,
@@ -251,10 +248,7 @@ export function createSecureClawPlugin(
       // =======================================================================
       api.on(
         "after_tool_call",
-        async (
-          event: PluginHookAfterToolCallEvent,
-          ctx: PluginHookToolContext,
-        ): Promise<void> => {
+        async (event: PluginHookAfterToolCallEvent, _ctx: PluginHookToolContext): Promise<void> => {
           if (!config.enablePostVerification) {
             return;
           }

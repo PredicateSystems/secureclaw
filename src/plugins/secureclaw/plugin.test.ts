@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { createSecureClawPlugin } from "./plugin.js";
 import type {
   PluginHookBeforeToolCallEvent,
   PluginHookAfterToolCallEvent,
@@ -8,6 +7,7 @@ import type {
   PluginHookToolContext,
   PluginHookSessionContext,
 } from "../types.js";
+import { createSecureClawPlugin } from "./plugin.js";
 
 // Mock predicate-claw SDK
 vi.mock("predicate-claw", () => {
@@ -29,7 +29,6 @@ vi.mock("predicate-claw", () => {
   const mockGuardOrThrow = vi.fn();
 
   class MockGuardedProvider {
-    constructor(_options: unknown) {}
     guardOrThrow = mockGuardOrThrow;
   }
 
@@ -94,7 +93,9 @@ describe("SecureClaw Plugin", () => {
       };
 
       // Activate plugin
-      await plugin.activate?.(mockApi as any);
+      await plugin.activate?.(
+        mockApi as unknown as Parameters<NonNullable<typeof plugin.activate>>[0],
+      );
 
       // Mock SDK to throw ActionDeniedError
       mockGuardOrThrow.mockRejectedValueOnce(new ActionDeniedError("policy_violation"));
@@ -137,7 +138,9 @@ describe("SecureClaw Plugin", () => {
         }),
       };
 
-      await plugin.activate?.(mockApi as any);
+      await plugin.activate?.(
+        mockApi as unknown as Parameters<NonNullable<typeof plugin.activate>>[0],
+      );
 
       // Mock SDK to return mandate ID (allowed)
       mockGuardOrThrow.mockResolvedValueOnce("mandate-123");
@@ -175,7 +178,9 @@ describe("SecureClaw Plugin", () => {
         }),
       };
 
-      await plugin.activate?.(mockApi as any);
+      await plugin.activate?.(
+        mockApi as unknown as Parameters<NonNullable<typeof plugin.activate>>[0],
+      );
 
       // Mock SDK to throw SidecarUnavailableError
       mockGuardOrThrow.mockRejectedValueOnce(new SidecarUnavailableError("Connection refused"));
@@ -215,7 +220,9 @@ describe("SecureClaw Plugin", () => {
         }),
       };
 
-      await plugin.activate?.(mockApi as any);
+      await plugin.activate?.(
+        mockApi as unknown as Parameters<NonNullable<typeof plugin.activate>>[0],
+      );
 
       // Mock SDK to return null (fail-open behavior from guardOrThrow)
       mockGuardOrThrow.mockResolvedValueOnce(null);
@@ -252,7 +259,9 @@ describe("SecureClaw Plugin", () => {
         }),
       };
 
-      await plugin.activate?.(mockApi as any);
+      await plugin.activate?.(
+        mockApi as unknown as Parameters<NonNullable<typeof plugin.activate>>[0],
+      );
 
       // Session start
       const sessionStart = registeredHooks.get("session_start");
@@ -267,9 +276,7 @@ describe("SecureClaw Plugin", () => {
 
       sessionStart!(startEvent, startCtx);
 
-      expect(mockApi.logger.info).toHaveBeenCalledWith(
-        expect.stringContaining("Session started"),
-      );
+      expect(mockApi.logger.info).toHaveBeenCalledWith(expect.stringContaining("Session started"));
 
       // Session end
       const sessionEnd = registeredHooks.get("session_end");
@@ -283,9 +290,7 @@ describe("SecureClaw Plugin", () => {
 
       sessionEnd!(endEvent, startCtx);
 
-      expect(mockApi.logger.info).toHaveBeenCalledWith(
-        expect.stringContaining("Session ended"),
-      );
+      expect(mockApi.logger.info).toHaveBeenCalledWith(expect.stringContaining("Session ended"));
     });
   });
 
@@ -308,7 +313,9 @@ describe("SecureClaw Plugin", () => {
         }),
       };
 
-      await plugin.activate?.(mockApi as any);
+      await plugin.activate?.(
+        mockApi as unknown as Parameters<NonNullable<typeof plugin.activate>>[0],
+      );
 
       const afterToolCall = registeredHooks.get("after_tool_call");
       expect(afterToolCall).toBeDefined();
@@ -325,9 +332,7 @@ describe("SecureClaw Plugin", () => {
 
       await afterToolCall!(event, ctx);
 
-      expect(mockApi.logger.info).toHaveBeenCalledWith(
-        expect.stringContaining("Post-verify"),
-      );
+      expect(mockApi.logger.info).toHaveBeenCalledWith(expect.stringContaining("Post-verify"));
     });
 
     it("skips verification when disabled", async () => {
@@ -348,7 +353,9 @@ describe("SecureClaw Plugin", () => {
         }),
       };
 
-      await plugin.activate?.(mockApi as any);
+      await plugin.activate?.(
+        mockApi as unknown as Parameters<NonNullable<typeof plugin.activate>>[0],
+      );
 
       const afterToolCall = registeredHooks.get("after_tool_call");
 
@@ -365,9 +372,7 @@ describe("SecureClaw Plugin", () => {
       await afterToolCall!(event, ctx);
 
       // Should not log post-verify when disabled
-      expect(mockApi.logger.info).not.toHaveBeenCalledWith(
-        expect.stringContaining("Post-verify"),
-      );
+      expect(mockApi.logger.info).not.toHaveBeenCalledWith(expect.stringContaining("Post-verify"));
     });
   });
 });
