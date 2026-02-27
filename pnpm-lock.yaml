@@ -161,6 +161,9 @@ importers:
       playwright-core:
         specifier: 1.58.2
         version: 1.58.2
+      predicate-claw:
+        specifier: ^0.1.0
+        version: 0.1.0
       qrcode-terminal:
         specifier: ^0.12.0
         version: 0.12.0
@@ -455,13 +458,13 @@ importers:
 
   packages/clawdbot:
     dependencies:
-      openclaw:
+      secureclaw:
         specifier: workspace:*
         version: link:../..
 
   packages/moltbot:
     dependencies:
-      openclaw:
+      secureclaw:
         specifier: workspace:*
         version: link:../..
 
@@ -2145,6 +2148,10 @@ packages:
 
   '@polka/url@1.0.0-next.29':
     resolution: {integrity: sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==}
+
+  '@predicatesystems/authority@0.3.3':
+    resolution: {integrity: sha512-AGGfrzgnox7IG/9o3tAVLDd4eRkxvz+JTkNoQ+ypiQwxqRMchOX3gXyBP78pqg0TtkkBsCwtGMN8ml7XdE0otw==}
+    engines: {node: '>=20.0.0'}
 
   '@protobufjs/aspromise@1.1.2':
     resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
@@ -4900,6 +4907,9 @@ packages:
   postgres@3.4.8:
     resolution: {integrity: sha512-d+JFcLM17njZaOLkv6SCev7uoLaBtfK86vMUXhW1Z4glPWh4jozno9APvW/XKFJ3CCxVoC7OL38BqRydtu5nGg==}
     engines: {node: '>=12'}
+
+  predicate-claw@0.1.0:
+    resolution: {integrity: sha512-yV3cnnWJ9Ydjd6O6zJCF/z2ChO06kqMlMTBo7eJepw8Ya3zlZbum8fkH1iN8PNyI0KZjMZU6RDE9FFqDVBGM7Q==}
 
   pretty-bytes@6.1.1:
     resolution: {integrity: sha512-mQUvGU6aUFQ+rNvTIAcZuWGRT9a6f6Yrg9bHs4ImKF+HZCEK+plBvnAZYSIQztknZF2qnzNtr6F8s0+IuptdlQ==}
@@ -7726,6 +7736,8 @@ snapshots:
     optional: true
 
   '@polka/url@1.0.0-next.29': {}
+
+  '@predicatesystems/authority@0.3.3': {}
 
   '@protobufjs/aspromise@1.1.2': {}
 
@@ -10838,6 +10850,10 @@ snapshots:
       source-map-js: 1.2.1
 
   postgres@3.4.8: {}
+
+  predicate-claw@0.1.0:
+    dependencies:
+      '@predicatesystems/authority': 0.3.3
 
   pretty-bytes@6.1.1: {}
 
