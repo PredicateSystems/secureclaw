@@ -3,7 +3,21 @@
  *
  * Integrates Predicate Authority for pre-execution authorization
  * and post-execution verification into OpenClaw's hook system.
+ *
+ * Uses predicate-claw (openclaw-predicate-provider) for authorization
+ * via the GuardedProvider class, which communicates with the
+ * rust-predicate-authorityd sidecar.
  */
+
+import {
+  GuardedProvider,
+  ActionDeniedError,
+  SidecarUnavailableError,
+  type GuardRequest,
+  type GuardTelemetry,
+  type DecisionTelemetryEvent,
+  type DecisionAuditExporter,
+} from "predicate-claw";
 
 import type {
   OpenClawPluginDefinition,
@@ -30,51 +44,6 @@ import {
 
 export interface SecureClawPluginOptions extends Partial<SecureClawConfig> {}
 
-interface AuthorizationDecision {
-  allow: boolean;
-  reason?: string;
-  mandateId?: string;
-}
-
-interface AuthorizationRequest {
-  principal: string;
-  action: string;
-  resource: string;
-  intent_hash: string;
-  labels?: string[];
-}
-
-/**
- * Simple stable JSON serialization for intent hashing.
- */
-function stableJson(value: unknown): string {
-  if (Array.isArray(value)) {
-    return `[${value.map((v) => stableJson(v)).join(",")}]`;
-  }
-  if (value && typeof value === "object") {
-    const entries = Object.entries(value as Record<string, unknown>).sort(
-      ([a], [b]) => a.localeCompare(b),
-    );
-    return `{${entries
-      .map(([k, v]) => `${JSON.stringify(k)}:${stableJson(v)}`)
-      .join(",")}}`;
-  }
-  return JSON.stringify(value);
-}
-
-/**
- * Compute SHA-256 hash of intent parameters.
- */
-async function computeIntentHash(params: Record<string, unknown>): Promise<string> {
-  const encoded = stableJson(params);
-  // Use Web Crypto API for Node.js 18+
-  const encoder = new TextEncoder();
-  const data = encoder.encode(encoded);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 /**
  * Create the SecureClaw plugin instance.
  */
@@ -98,6 +67,42 @@ export function createSecureClawPlugin(
 
     async activate(api: OpenClawPluginApi) {
       const log = api.logger;
+
+      // Create telemetry handler for logging decisions
+      const telemetry: GuardTelemetry = {
+        onDecision(event: DecisionTelemetryEvent) {
+          if (config.verbose) {
+            const status = event.outcome === "allow" ? "ALLOWED" : event.outcome === "deny" ? "BLOCKED" : "ERROR";
+            log.info(`[SecureClaw] ${status}: ${event.action} on ${event.resource} (${event.reason ?? "no reason"})`);
+          }
+        },
+      };
+
+      // Create audit exporter if needed
+      const auditExporter: DecisionAuditExporter = {
+        async exportDecision(event: DecisionTelemetryEvent) {
+          // TODO: Send to centralized audit log (e.g., via OTLP)
+          // For now, this is a no-op placeholder
+          // In production:
+          // 1. Send to centralized audit log
+          // 2. Include correlation IDs for tracing
+          // 3. Ensure tamper-proof storage
+        },
+      };
+
+      // Create GuardedProvider instance from predicate-claw SDK
+      const guardedProvider = new GuardedProvider({
+        principal: config.principal,
+        config: {
+          baseUrl: config.sidecarUrl,
+          failClosed: config.failClosed,
+          timeoutMs: 5000, // 5 second timeout for tool calls
+          maxRetries: 0,
+          backoffInitialMs: 100,
+        },
+        telemetry,
+        auditExporter,
+      });
 
       if (config.verbose) {
         log.info(`[SecureClaw] Activating with principal: ${config.principal}`);
@@ -171,30 +176,32 @@ export function createSecureClawPlugin(
           }
 
           try {
-            // Compute intent hash for request verification
-            const intentHash = await computeIntentHash(params);
-
-            // Build authorization request
-            const authRequest: AuthorizationRequest = {
-              principal: config.principal,
+            // Build guard request for predicate-claw SDK
+            const guardRequest: GuardRequest = {
               action,
               resource,
-              intent_hash: intentHash,
-              labels: buildLabels(ctx, config),
+              args: params as Record<string, unknown>,
+              context: {
+                session_id: currentSessionId ?? ctx.sessionKey,
+                tenant_id: config.tenantId,
+                user_id: config.userId,
+                agent_id: ctx.agentId,
+                source: "secureclaw",
+              },
             };
 
-            // Call Predicate Authority sidecar
-            const decision = await authorizeWithSidecar(
-              authRequest,
-              config.sidecarUrl,
-              config.verbose ? log : undefined,
-            );
+            // Use guardOrThrow which handles fail-open/fail-closed internally
+            await guardedProvider.guardOrThrow(guardRequest);
 
-            if (!decision.allow) {
+            // If we get here, the action was allowed
+            return undefined;
+          } catch (error) {
+            // Handle ActionDeniedError - action was explicitly denied by policy
+            if (error instanceof ActionDeniedError) {
               metrics.blocked++;
               toolCallMetrics.set(toolName, metrics);
 
-              const reason = decision.reason ?? "denied_by_policy";
+              const reason = error.message ?? "denied_by_policy";
               if (config.verbose) {
                 log.warn(`[SecureClaw] BLOCKED: ${action} - ${reason}`);
               }
@@ -205,28 +212,34 @@ export function createSecureClawPlugin(
               };
             }
 
-            if (config.verbose) {
-              log.info(`[SecureClaw] ALLOWED: ${action} (mandate: ${decision.mandateId ?? "none"})`);
-            }
-
-            // Allow the tool call to proceed
-            return undefined;
-          } catch (error) {
-            // Handle sidecar unavailability
-            const errorMessage = error instanceof Error ? error.message : String(error);
-
-            if (config.failClosed) {
+            // Handle SidecarUnavailableError - sidecar is down
+            if (error instanceof SidecarUnavailableError) {
+              // In fail-closed mode (handled by guardOrThrow), this error is thrown
+              // In fail-open mode, guardOrThrow returns null instead of throwing
               metrics.blocked++;
               toolCallMetrics.set(toolName, metrics);
 
-              log.error(`[SecureClaw] Sidecar error (fail-closed): ${errorMessage}`);
+              log.error(`[SecureClaw] Sidecar error (fail-closed): ${error.message}`);
               return {
                 block: true,
                 blockReason: `[SecureClaw] Authorization service unavailable (fail-closed mode)`,
               };
             }
 
-            log.warn(`[SecureClaw] Sidecar error (fail-open): ${errorMessage}`);
+            // Unknown error - treat as sidecar unavailable
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (config.failClosed) {
+              metrics.blocked++;
+              toolCallMetrics.set(toolName, metrics);
+
+              log.error(`[SecureClaw] Unknown error (fail-closed): ${errorMessage}`);
+              return {
+                block: true,
+                blockReason: `[SecureClaw] Authorization service unavailable (fail-closed mode)`,
+              };
+            }
+
+            log.warn(`[SecureClaw] Unknown error (fail-open): ${errorMessage}`);
             return undefined; // Allow in fail-open mode
           }
         },
@@ -266,21 +279,6 @@ export function createSecureClawPlugin(
           if (action === "fs.write" && !error) {
             await verifyFileWrite(toolName, params, result, log, config.verbose);
           }
-
-          // Log to audit trail
-          await emitAuditEvent({
-            sessionId: currentSessionId,
-            action,
-            resource: redactResource(resource),
-            toolName,
-            success: !error,
-            error: error,
-            durationMs,
-            timestamp: new Date().toISOString(),
-            principal: config.principal,
-            tenantId: config.tenantId,
-            userId: config.userId,
-          });
         },
         { priority: 100 },
       );
@@ -288,64 +286,6 @@ export function createSecureClawPlugin(
       log.info("[SecureClaw] Plugin activated - all tool calls will be authorized");
     },
   };
-}
-
-/**
- * Build labels for authorization request context.
- */
-function buildLabels(
-  ctx: PluginHookToolContext,
-  config: SecureClawConfig,
-): string[] {
-  const labels: string[] = [];
-
-  if (ctx.agentId) {
-    labels.push(`agent:${ctx.agentId}`);
-  }
-  if (ctx.sessionKey) {
-    labels.push(`session:${ctx.sessionKey}`);
-  }
-  if (config.tenantId) {
-    labels.push(`tenant:${config.tenantId}`);
-  }
-  if (config.userId) {
-    labels.push(`user:${config.userId}`);
-  }
-
-  labels.push("source:secureclaw");
-
-  return labels;
-}
-
-/**
- * Call the Predicate Authority sidecar for authorization.
- */
-async function authorizeWithSidecar(
-  request: AuthorizationRequest,
-  sidecarUrl: string,
-  log?: { info: (msg: string) => void },
-): Promise<AuthorizationDecision> {
-  const url = `${sidecarUrl}/authorize`;
-
-  if (log) {
-    log.info(`[SecureClaw] Calling sidecar: ${url}`);
-  }
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(request),
-    signal: AbortSignal.timeout(5000), // 5 second timeout
-  });
-
-  if (!response.ok) {
-    throw new Error(`Sidecar returned ${response.status}: ${response.statusText}`);
-  }
-
-  const decision = (await response.json()) as AuthorizationDecision;
-  return decision;
 }
 
 /**
@@ -394,29 +334,4 @@ async function verifyFileWrite(
   // 2. Compute hash of written content
   // 3. Compare against intent_hash from authorization
   // 4. Flag any discrepancies
-}
-
-/**
- * Emit an audit event for logging/compliance.
- */
-async function emitAuditEvent(event: {
-  sessionId?: string;
-  action: string;
-  resource: string;
-  toolName: string;
-  success: boolean;
-  error?: string;
-  durationMs?: number;
-  timestamp: string;
-  principal: string;
-  tenantId?: string;
-  userId?: string;
-}): Promise<void> {
-  // TODO: Send to audit log collector
-  // For now, this is a no-op placeholder
-
-  // In production:
-  // 1. Send to centralized audit log (e.g., via OTLP)
-  // 2. Include correlation IDs for tracing
-  // 3. Ensure tamper-proof storage
 }

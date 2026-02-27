@@ -1,0 +1,85 @@
+{
+  "rules": [
+    {
+      "name": "deny-auth-pages",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["browser.navigate", "browser.interact"],
+      "resources": ["*login*", "*signin*", "*auth*", "*oauth*", "*password*", "https://accounts.google.com/*", "https://login.microsoftonline.com/*", "https://github.com/login*", "https://github.com/settings/*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-admin-pages",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["browser.navigate", "browser.interact"],
+      "resources": ["*admin*", "*settings/security*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "allow-navigation-https",
+      "effect": "allow",
+      "principals": ["agent:browser", "agent:secureclaw"],
+      "actions": ["browser.navigate"],
+      "resources": ["https://*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "allow-screenshot",
+      "effect": "allow",
+      "principals": ["agent:browser", "agent:secureclaw"],
+      "actions": ["browser.screenshot"],
+      "resources": ["browser:current", "*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "allow-browser-interact",
+      "effect": "allow",
+      "principals": ["agent:browser", "agent:secureclaw"],
+      "actions": ["browser.interact", "browser.click", "browser.type", "browser.scroll"],
+      "resources": ["https://*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-file-system",
+      "effect": "deny",
+      "principals": ["agent:browser"],
+      "actions": ["fs.read", "fs.write", "fs.list"],
+      "resources": ["*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-shell",
+      "effect": "deny",
+      "principals": ["agent:browser"],
+      "actions": ["shell.exec"],
+      "resources": ["*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-agent-spawn",
+      "effect": "deny",
+      "principals": ["agent:browser"],
+      "actions": ["agent.spawn"],
+      "resources": ["*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "allow-api-requests",
+      "effect": "allow",
+      "principals": ["agent:browser", "agent:secureclaw"],
+      "actions": ["http.request"],
+      "resources": ["https://api.*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    }
+  ]
+}

@@ -33,8 +33,8 @@ export interface SecureClawConfig {
 
 export const defaultConfig: SecureClawConfig = {
   principal: "agent:secureclaw",
-  policyFile: "./policies/default.yaml",
-  sidecarUrl: "http://127.0.0.1:9120",
+  policyFile: "./policies/default.json",
+  sidecarUrl: "http://127.0.0.1:8787",
   failClosed: true,
   enablePostVerification: true,
   verbose: false,

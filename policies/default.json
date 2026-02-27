@@ -1,0 +1,112 @@
+{
+  "rules": [
+    {
+      "name": "deny-ssh-keys",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["fs.read", "fs.write"],
+      "resources": ["*/.ssh/*", "*/id_rsa*", "*/id_ed25519*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-aws-credentials",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["fs.read", "fs.write"],
+      "resources": ["*/.aws/*", "*credentials*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-cloud-credentials",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["fs.read", "fs.write"],
+      "resources": ["*/.gcp/*", "*/.azure/*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-env-files",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["fs.read", "fs.write"],
+      "resources": ["*/.env*", "*secrets*", "*token*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-key-files",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["fs.read", "fs.write"],
+      "resources": ["*.pem", "*.key", "*private_key*", "*privatekey*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-system-files",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["fs.read", "fs.write"],
+      "resources": ["/etc/passwd", "/etc/shadow"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "allow-source-code-read",
+      "effect": "allow",
+      "principals": ["agent:*"],
+      "actions": ["fs.read", "fs.list"],
+      "resources": ["*.ts", "*.tsx", "*.js", "*.jsx", "*.py", "*.rs", "*.go", "*.java", "*.md", "*.json", "*.yaml", "*.yml", "*.toml", "*.txt"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "allow-project-files-read",
+      "effect": "allow",
+      "principals": ["agent:*"],
+      "actions": ["fs.read", "fs.list"],
+      "resources": ["*/src/*", "*/lib/*", "*/docs/*", "*/test/*", "*/tests/*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-shell-by-default",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["shell.exec"],
+      "resources": ["*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-network-by-default",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["http.request"],
+      "resources": ["*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-browser-by-default",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["browser.*"],
+      "resources": ["*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    },
+    {
+      "name": "deny-agent-spawn-by-default",
+      "effect": "deny",
+      "principals": ["*"],
+      "actions": ["agent.spawn"],
+      "resources": ["*"],
+      "required_labels": [],
+      "max_delegation_depth": null
+    }
+  ]
+}
