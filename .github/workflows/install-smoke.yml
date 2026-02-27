@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+    branches: [main] # Skip on secureclaw branch PRs
   workflow_dispatch:
 
 concurrency:

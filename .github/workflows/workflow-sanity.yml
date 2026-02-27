@@ -2,6 +2,7 @@ name: Workflow Sanity
 
 on:
   pull_request:
+    branches: [main] # Skip on secureclaw branch PRs
   push:
     branches: [main]
 

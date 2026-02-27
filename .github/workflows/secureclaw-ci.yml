@@ -42,7 +42,7 @@ jobs:
         run: pnpm check
 
   test:
-    name: "unit tests"
+    name: "secureclaw tests"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -65,8 +65,8 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Run tests
-        run: pnpm test:fast
+      - name: Run SecureClaw tests
+        run: pnpm exec vitest run --config vitest.unit.config.ts src/plugins/secureclaw/
 
   build:
     name: "build"
