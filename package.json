@@ -1,15 +1,15 @@
 {
   "name": "@predicatesystems/secureclaw",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "SecureClaw: Zero-trust security fork of OpenClaw with pre-authorization and post-verification",
   "keywords": [
+    "agentic-security",
     "ai-agent",
-    "security",
-    "zero-trust",
+    "authorization",
     "openclaw",
     "predicate",
-    "authorization",
-    "agentic-security"
+    "security",
+    "zero-trust"
   ],
   "homepage": "https://github.com/PredicateSystems/secureclaw#readme",
   "bugs": {
