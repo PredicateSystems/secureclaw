@@ -13,13 +13,13 @@
   ],
   "homepage": "https://predicatesystems.ai/docs/secure-claw",
   "bugs": {
-    "url": "https://github.com/rcholic/openclaw/issues"
+    "url": "https://github.com/predicatesystems/secureclaw/issues"
   },
   "license": "MIT",
   "author": "Predicate Systems <hello@predicatesystems.ai>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rcholic/openclaw.git"
+    "url": "git+https://github.com/predicatesystems/secureclaw.git"
   },
   "bin": {
     "secureclaw": "openclaw.mjs"

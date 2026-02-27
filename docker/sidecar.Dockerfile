@@ -22,8 +22,7 @@ RUN apt-get update && apt-get install -y \
 
 # Clone the sidecar source from git
 # In production, pin to a specific tag/commit
-RUN git clone --depth 1 https://github.com/rcholic/rust-predicate-authorityd.git . || \
-    git clone --depth 1 https://github.com/predicatesystems/rust-predicate-authorityd.git .
+RUN git clone --depth 1 https://github.com/predicatesystems/rust-predicate-authorityd.git .
 
 # Build release binary
 RUN cargo build --release
