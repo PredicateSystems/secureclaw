@@ -9,6 +9,8 @@
 
 <p align="center">
   <strong>Pre-authorization. Post-verification. Zero-trust AI agent security.</strong>
+  <br>
+  <a href="docs/secureclaw-architecture.md">See how it works →</a>
 </p>
 
 <p align="center">
