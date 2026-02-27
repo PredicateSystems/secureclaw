@@ -1,5 +1,5 @@
 {
-  "name": "secureclaw",
+  "name": "@predicatesystems/secureclaw",
   "version": "1.0.0",
   "description": "SecureClaw: Zero-trust security fork of OpenClaw with pre-authorization and post-verification",
   "keywords": [

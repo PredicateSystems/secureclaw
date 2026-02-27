@@ -68,9 +68,9 @@ jobs:
           VERSION="${GITHUB_REF#refs/tags/v}"
           echo "## NPM Release Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Published **secureclaw@${VERSION}** to NPM" >> $GITHUB_STEP_SUMMARY
+          echo "Published **@predicatesystems/secureclaw@${VERSION}** to NPM" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Install with:" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-          echo "npm install secureclaw@${VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "npm install @predicatesystems/secureclaw@${VERSION}" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
