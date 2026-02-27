@@ -9,25 +9,26 @@ import type {
 } from "../types.js";
 import { createSecureClawPlugin } from "./plugin.js";
 
+// Create mock function outside vi.mock for access
+const mockGuardOrThrow = vi.fn();
+
+// Mock error classes
+class MockActionDeniedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ActionDeniedError";
+  }
+}
+
+class MockSidecarUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "SidecarUnavailableError";
+  }
+}
+
 // Mock predicate-claw SDK
 vi.mock("predicate-claw", () => {
-  class MockActionDeniedError extends Error {
-    constructor(message: string) {
-      super(message);
-      this.name = "ActionDeniedError";
-    }
-  }
-
-  class MockSidecarUnavailableError extends Error {
-    constructor(message: string) {
-      super(message);
-      this.name = "SidecarUnavailableError";
-    }
-  }
-
-  // Store the mock behavior
-  const mockGuardOrThrow = vi.fn();
-
   class MockGuardedProvider {
     guardOrThrow = mockGuardOrThrow;
   }
@@ -36,13 +37,12 @@ vi.mock("predicate-claw", () => {
     GuardedProvider: MockGuardedProvider,
     ActionDeniedError: MockActionDeniedError,
     SidecarUnavailableError: MockSidecarUnavailableError,
-    __mockGuardOrThrow: mockGuardOrThrow,
   };
 });
 
-// Get reference to the mock for controlling behavior
-import { __mockGuardOrThrow, ActionDeniedError, SidecarUnavailableError } from "predicate-claw";
-const mockGuardOrThrow = __mockGuardOrThrow as ReturnType<typeof vi.fn>;
+// Aliases for use in tests
+const ActionDeniedError = MockActionDeniedError;
+const SidecarUnavailableError = MockSidecarUnavailableError;
 
 describe("SecureClaw Plugin", () => {
   beforeEach(() => {
