@@ -1,5 +1,6 @@
 name: Docker Release
 
+# Only run on upstream openclaw/openclaw repo
 on:
   push:
     branches:
@@ -24,6 +25,8 @@ env:
 jobs:
   # Build amd64 image
   build-amd64:
+    # Skip on secureclaw fork
+    if: github.repository == 'openclaw/openclaw'
     runs-on: blacksmith-16vcpu-ubuntu-2404
     permissions:
       packages: write
