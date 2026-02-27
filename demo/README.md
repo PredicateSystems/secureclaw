@@ -11,12 +11,37 @@ This demo shows how SecureClaw protects against prompt injection attacks that at
 
 ---
 
-## Demo Option 1: Simulation Script (No Sidecar Required)
+## Quick Start with Docker
 
-The quickest way to see the demo - runs a simulated walkthrough with no dependencies.
+The easiest way to run the demo - no local setup required.
+
+### Option A: Simulation Script (Fastest)
 
 ```bash
-cd /Users/guoliangwang/Downloads/openclaw
+# Run the interactive simulation
+docker-compose -f docker-compose.demo.yml run demo-script
+```
+
+This walks through the attack scenario with colored output - no API keys or sidecar needed.
+
+### Option B: Live Demo with Sidecar
+
+```bash
+# Terminal 1: Start the sidecar (builds from source, may take a few minutes first time)
+docker-compose -f docker-compose.demo.yml up sidecar
+
+# Terminal 2: Run SecureClaw locally against the Docker sidecar
+cd /path/to/openclaw
+PREDICATE_SIDECAR_URL=http://localhost:8787 SECURECLAW_VERBOSE=true pnpm openclaw
+```
+
+---
+
+## Demo Option 1: Simulation Script (No Dependencies)
+
+The quickest way to see the demo - runs a simulated walkthrough.
+
+```bash
 ./demo/hack-vs-fix.sh
 ```
 
@@ -31,7 +56,7 @@ This script:
 
 ---
 
-## Demo Option 2: Live Demo with Sidecar
+## Demo Option 2: Live Demo with Local Sidecar
 
 For a real end-to-end demo with the actual rust-predicate-authorityd sidecar.
 
@@ -39,13 +64,13 @@ For a real end-to-end demo with the actual rust-predicate-authorityd sidecar.
 
 1. Build the rust-predicate-authorityd sidecar:
    ```bash
-   cd /Users/guoliangwang/Code/Sentience/rust-predicate-authorityd
+   cd /path/to/rust-predicate-authorityd
    cargo build --release
    ```
 
 2. Install SecureClaw dependencies:
    ```bash
-   cd /Users/guoliangwang/Downloads/openclaw
+   cd /path/to/openclaw
    pnpm install
    ```
 
@@ -53,9 +78,9 @@ For a real end-to-end demo with the actual rust-predicate-authorityd sidecar.
 
 **Terminal 1 - Start the Sidecar:**
 ```bash
-cd /Users/guoliangwang/Code/Sentience/rust-predicate-authorityd
+cd /path/to/rust-predicate-authorityd
 cargo run --release -- \
-  --policy /Users/guoliangwang/Downloads/openclaw/policies/default.json \
+  --policy /path/to/openclaw/policies/default.json \
   --port 8787
 ```
 
@@ -67,7 +92,7 @@ You should see:
 
 **Terminal 2 - Run SecureClaw:**
 ```bash
-cd /Users/guoliangwang/Downloads/openclaw
+cd /path/to/openclaw
 SECURECLAW_VERBOSE=true pnpm openclaw
 ```
 
@@ -84,13 +109,11 @@ SECURECLAW_VERBOSE=true pnpm openclaw
 
 ---
 
-## Demo Option 3: Live Demo WITHOUT Sidecar (Fail-Open Mode)
+## Demo Option 3: Test Fail-Open vs Fail-Closed
 
-To test SecureClaw behavior when the sidecar is unavailable:
+Test SecureClaw behavior when the sidecar is unavailable:
 
 ```bash
-cd /Users/guoliangwang/Downloads/openclaw
-
 # Fail-open mode (allows actions when sidecar is down)
 SECURECLAW_FAIL_OPEN=true SECURECLAW_VERBOSE=true pnpm openclaw
 
@@ -111,6 +134,26 @@ In **fail-open mode**, actions will be allowed with a warning:
 
 ---
 
+## Docker Files
+
+| File | Description |
+|------|-------------|
+| `docker-compose.demo.yml` | Demo orchestration |
+| `docker/sidecar.Dockerfile` | Builds rust-predicate-authorityd from source |
+| `docker/secureclaw.Dockerfile` | Builds SecureClaw image |
+
+### Building Images Manually
+
+```bash
+# Build sidecar image
+docker build -f docker/sidecar.Dockerfile -t predicate-authorityd:demo ./docker
+
+# Build SecureClaw image
+docker build -f docker/secureclaw.Dockerfile -t secureclaw:demo .
+```
+
+---
+
 ## Key Files
 
 | File | Description |
@@ -123,7 +166,7 @@ In **fail-open mode**, actions will be allowed with a warning:
 
 ---
 
-## How It Works
+## Architecture
 
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────────────┐

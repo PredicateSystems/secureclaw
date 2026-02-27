@@ -1,0 +1,63 @@
+# SecureClaw Demo Docker Compose
+#
+# This sets up the complete SecureClaw demo environment:
+# - rust-predicate-authorityd sidecar (policy engine)
+# - SecureClaw (OpenClaw with security plugin)
+#
+# Quick Start:
+#   # Run the simulation demo (no API keys needed)
+#   docker-compose -f docker-compose.demo.yml run demo-script
+#
+#   # Run full demo with sidecar
+#   docker-compose -f docker-compose.demo.yml up sidecar
+#   # Then in another terminal, run SecureClaw locally
+
+version: '3.8'
+
+services:
+  # ============================================================================
+  # Predicate Authority Sidecar
+  # Handles policy evaluation for all authorization requests
+  # ============================================================================
+  sidecar:
+    build:
+      context: ./docker
+      dockerfile: sidecar.Dockerfile
+    image: predicate-authorityd:demo
+    container_name: secureclaw-sidecar
+    ports:
+      - "8787:8787"
+    volumes:
+      # Mount policies for hot-reload during development
+      - ./policies:/app/policies:ro
+    environment:
+      - RUST_LOG=info,predicate_authorityd=debug
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8787/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 30s  # Rust build takes time on first run
+    restart: unless-stopped
+
+  # ============================================================================
+  # Demo Script Runner
+  # Runs the hack-vs-fix simulation - NO dependencies needed
+  # ============================================================================
+  demo-script:
+    image: bash:5
+    container_name: secureclaw-demo-script
+    volumes:
+      - ./demo:/demo:ro
+    working_dir: /demo
+    command: ["bash", "/demo/hack-vs-fix.sh"]
+    stdin_open: true
+    tty: true
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  default:
+    name: secureclaw-demo
+    driver: bridge
