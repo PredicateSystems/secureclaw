@@ -455,13 +455,13 @@ importers:
 
   packages/clawdbot:
     dependencies:
-      openclaw:
+      secureclaw:
         specifier: workspace:*
         version: link:../..
 
   packages/moltbot:
     dependencies:
-      openclaw:
+      secureclaw:
         specifier: workspace:*
         version: link:../..
 
