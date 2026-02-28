@@ -8,9 +8,9 @@ name: SecureClaw CI
 
 on:
   push:
-    branches: [secureclaw, phase2]
+    branches: [secureclaw, phase2, rebrand]
   pull_request:
-    branches: [secureclaw, phase2]
+    branches: [secureclaw, phase2, rebrand]
 
 concurrency:
   group: secureclaw-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
