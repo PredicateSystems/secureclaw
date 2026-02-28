@@ -1,10 +1,4 @@
 {
-  "version": "1.0",
-  "metadata": {
-    "name": "strict",
-    "description": "Balanced production policy with workspace isolation",
-    "environment": "production"
-  },
   "rules": [
     {
       "name": "block-sensitive-files",
@@ -34,8 +28,7 @@
         "/etc/shadow",
         "/etc/sudoers",
         "/etc/sudoers.d/*"
-      ],
-      "required_labels": []
+      ]
     },
     {
       "name": "block-outside-workspace",
@@ -66,8 +59,7 @@
         "/Applications/*",
         "C:\\Windows\\*",
         "C:\\Program Files*"
-      ],
-      "required_labels": []
+      ]
     },
     {
       "name": "block-dangerous-commands",
@@ -103,16 +95,14 @@
         "echo $*_TOKEN*",
         "printenv*KEY*",
         "printenv*SECRET*"
-      ],
-      "required_labels": []
+      ]
     },
     {
       "name": "block-insecure-protocols",
       "effect": "deny",
       "principals": ["*"],
       "actions": ["http.request", "http.get", "http.post", "fetch", "browser.navigate"],
-      "resources": ["http://*", "ftp://*", "file://*", "data:text/html*", "javascript:*"],
-      "required_labels": []
+      "resources": ["http://*", "ftp://*", "file://*", "data:text/html*", "javascript:*"]
     },
     {
       "name": "allow-workspace-read",
@@ -131,8 +121,7 @@
         "glob",
         "grep"
       ],
-      "resources": ["*"],
-      "required_labels": []
+      "resources": ["*"]
     },
     {
       "name": "allow-workspace-write",
@@ -222,8 +211,7 @@
         "docker ps*",
         "docker images*",
         "docker logs*"
-      ],
-      "required_labels": []
+      ]
     },
     {
       "name": "allow-build-commands",
@@ -259,8 +247,7 @@
         "http.delete",
         "fetch"
       ],
-      "resources": ["https://*"],
-      "required_labels": []
+      "resources": ["https://*"]
     },
     {
       "name": "allow-browser-navigation",
@@ -293,8 +280,7 @@
       "effect": "deny",
       "principals": ["*"],
       "actions": ["*"],
-      "resources": ["*"],
-      "required_labels": []
+      "resources": ["*"]
     }
   ]
 }

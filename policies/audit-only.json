@@ -1,11 +1,4 @@
 {
-  "version": "1.0",
-  "metadata": {
-    "name": "audit-only",
-    "description": "Permissive policy for agent profiling - logs all actions",
-    "environment": "development",
-    "warning": "NOT FOR PRODUCTION USE"
-  },
   "rules": [
     {
       "name": "block-catastrophic-commands",
@@ -23,8 +16,7 @@
         "wget*|base64*",
         "cat*|nc*",
         "cat*|curl*"
-      ],
-      "required_labels": []
+      ]
     },
     {
       "name": "allow-all-filesystem-read-audit",
@@ -146,8 +138,7 @@
       "effect": "deny",
       "principals": ["*"],
       "actions": ["*"],
-      "resources": ["*"],
-      "required_labels": []
+      "resources": ["*"]
     }
   ]
 }

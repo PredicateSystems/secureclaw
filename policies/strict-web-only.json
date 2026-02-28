@@ -1,9 +1,4 @@
 {
-  "version": "1.0",
-  "metadata": {
-    "name": "strict-web-only",
-    "description": "Browser automation only - blocks all filesystem and shell access"
-  },
   "rules": [
     {
       "name": "block-all-filesystem-read",
@@ -18,8 +13,7 @@
         "file.read",
         "read"
       ],
-      "resources": ["*"],
-      "required_labels": []
+      "resources": ["*"]
     },
     {
       "name": "block-all-filesystem-write",
@@ -40,8 +34,7 @@
         "write",
         "edit"
       ],
-      "resources": ["*"],
-      "required_labels": []
+      "resources": ["*"]
     },
     {
       "name": "block-all-system-execution",
@@ -62,8 +55,7 @@
         "exec",
         "run"
       ],
-      "resources": ["*"],
-      "required_labels": []
+      "resources": ["*"]
     },
     {
       "name": "block-insecure-http",
@@ -77,8 +69,7 @@
         "browser.goto",
         "fetch"
       ],
-      "resources": ["http://*", "file://*", "data:*", "javascript:*", "ftp://*"],
-      "required_labels": []
+      "resources": ["http://*", "file://*", "data:*", "javascript:*", "ftp://*"]
     },
     {
       "name": "block-sensitive-form-fields",
@@ -95,8 +86,7 @@
         "element:*[name=api_key*",
         "element:*[name=secret*",
         "element:*[name=token*"
-      ],
-      "required_labels": []
+      ]
     },
     {
       "name": "allow-navigation-trusted-domains",
@@ -184,8 +174,7 @@
       "effect": "deny",
       "principals": ["*"],
       "actions": ["*"],
-      "resources": ["*"],
-      "required_labels": []
+      "resources": ["*"]
     }
   ]
 }

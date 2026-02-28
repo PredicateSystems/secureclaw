@@ -1,9 +1,4 @@
 {
-  "version": "1.0",
-  "metadata": {
-    "name": "read-only-local",
-    "description": "Allows filesystem read for context gathering, blocks all writes"
-  },
   "rules": [
     {
       "name": "block-filesystem-write",
@@ -18,8 +13,7 @@
         "write",
         "edit"
       ],
-      "resources": ["*"],
-      "required_labels": []
+      "resources": ["*"]
     },
     {
       "name": "block-filesystem-delete",
@@ -34,8 +28,7 @@
         "file.delete",
         "delete"
       ],
-      "resources": ["*"],
-      "required_labels": []
+      "resources": ["*"]
     },
     {
       "name": "block-filesystem-modify",
@@ -52,8 +45,7 @@
         "file.rename",
         "file.move"
       ],
-      "resources": ["*"],
-      "required_labels": []
+      "resources": ["*"]
     },
     {
       "name": "block-sensitive-file-read",
@@ -86,8 +78,7 @@
         "**/*.key",
         "**/id_rsa*",
         "**/id_ed25519*"
-      ],
-      "required_labels": []
+      ]
     },
     {
       "name": "block-dangerous-shell-commands",
@@ -136,24 +127,21 @@
         "emacs *",
         "sed -i*",
         "awk -i*"
-      ],
-      "required_labels": []
+      ]
     },
     {
       "name": "block-http-mutations",
       "effect": "deny",
       "principals": ["*"],
       "actions": ["http.post", "http.put", "http.patch", "http.delete"],
-      "resources": ["*"],
-      "required_labels": []
+      "resources": ["*"]
     },
     {
       "name": "block-browser-mutations",
       "effect": "deny",
       "principals": ["*"],
       "actions": ["browser.click", "browser.type", "browser.fill", "browser.submit"],
-      "resources": ["*"],
-      "required_labels": []
+      "resources": ["*"]
     },
     {
       "name": "allow-filesystem-read",
@@ -170,16 +158,14 @@
         "file.read",
         "read"
       ],
-      "resources": ["*"],
-      "required_labels": []
+      "resources": ["*"]
     },
     {
       "name": "allow-filesystem-search",
       "effect": "allow",
       "principals": ["agent:*"],
       "actions": ["fs.glob", "fs.find", "fs.search", "glob", "grep"],
-      "resources": ["*"],
-      "required_labels": []
+      "resources": ["*"]
     },
     {
       "name": "allow-readonly-shell-commands",
@@ -242,16 +228,14 @@
         "tokei *",
         "file *",
         "stat *"
-      ],
-      "required_labels": []
+      ]
     },
     {
       "name": "allow-https-get-requests",
       "effect": "allow",
       "principals": ["agent:*"],
       "actions": ["http.get", "http.request", "fetch", "browser.navigate", "browser.goto"],
-      "resources": ["https://*"],
-      "required_labels": []
+      "resources": ["https://*"]
     },
     {
       "name": "allow-browser-read-operations",
@@ -268,16 +252,14 @@
         "browser.scroll",
         "browser.wait"
       ],
-      "resources": ["*"],
-      "required_labels": []
+      "resources": ["*"]
     },
     {
       "name": "default-deny",
       "effect": "deny",
       "principals": ["*"],
       "actions": ["*"],
-      "resources": ["*"],
-      "required_labels": []
+      "resources": ["*"]
     }
   ]
 }
