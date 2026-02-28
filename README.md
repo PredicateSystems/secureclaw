@@ -10,120 +10,111 @@
 <p align="center">
   <strong>Pre-authorization. Post-verification. Zero-trust AI agent security.</strong>
   <br>
-  <a href="docs/secureclaw-architecture.md">See how it works →</a>
+  <a href="docs/secureclaw-architecture.md">Read the Security Architecture →</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/predicatesystems/secureclaw/actions/workflows/secureclaw-ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/predicatesystems/secureclaw/secureclaw-ci.yml?branch=secureclaw&style=for-the-badge" alt="CI status"></a>
-  <a href="https://github.com/predicatesystems/secureclaw/releases"><img src="https://img.shields.io/github/v/release/predicatesystems/secureclaw?include_prereleases&style=for-the-badge" alt="GitHub release"></a>
-  <a href="https://www.npmjs.com/package/secureclaw"><img src="https://img.shields.io/npm/v/secureclaw?style=for-the-badge" alt="npm version"></a>
+  <a href="https://github.com/PredicateSystems/SecureClaw/actions/workflows/secureclaw-ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/PredicateSystems/SecureClaw/secureclaw-ci.yml?branch=main&style=for-the-badge" alt="CI status"></a>
+  <a href="https://github.com/PredicateSystems/SecureClaw/releases"><img src="https://img.shields.io/github/v/release/PredicateSystems/SecureClaw?include_prereleases&style=for-the-badge" alt="GitHub release"></a>
+  <a href="https://www.npmjs.com/package/@predicatesystems/secureclaw"><img src="https://img.shields.io/npm/v/@predicatesystems/secureclaw?style=for-the-badge" alt="npm version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License"></a>
 </p>
 
-**SecureClaw** is a _personal AI assistant_ you run on your own devices.
-It answers you on the channels you already use (WhatsApp, Telegram, Slack, Discord, Google Chat, Signal, iMessage, Microsoft Teams, WebChat), plus extension channels like BlueBubbles, Matrix, Zalo, and Zalo Personal. It can speak and listen on macOS/iOS/Android, and can render a live Canvas you control. The Gateway is just the control plane — the product is the assistant.
+## Authorization ≠ Intent
 
-If you want a personal, single-user assistant that feels local, fast, and always-on, this is it.
+Identity and token authorization are solved problems in traditional software engineering. But in the era of autonomous AI agents, standard RBAC is not enough. **Just because an agent holds a valid API token to execute a command doesn't mean its current _intent_ is safe.**
 
-[Website](https://openclaw.ai) · [Docs](https://docs.openclaw.ai) · [Vision](VISION.md) · [DeepWiki](https://deepwiki.com/openclaw/openclaw) · [Getting Started](https://docs.openclaw.ai/start/getting-started) · [Updating](https://docs.openclaw.ai/install/updating) · [Showcase](https://docs.openclaw.ai/start/showcase) · [FAQ](https://docs.openclaw.ai/help/faq) · [Wizard](https://docs.openclaw.ai/start/wizard) · [Nix](https://github.com/openclaw/nix-openclaw) · [Docker](https://docs.openclaw.ai/install/docker) · [Discord](https://discord.gg/clawd)
+If an agent hallucinates, experiences context compaction, or falls victim to prompt injection, your standard authorization system blindly complies with the malicious intent.
 
-Preferred setup: run the onboarding wizard (`openclaw onboard`) in your terminal.
-The wizard guides you step by step through setting up the gateway, workspace, channels, and skills. The CLI wizard is the recommended path and works on **macOS, Linux, and Windows (via WSL2; strongly recommended)**.
-Works with npm, pnpm, or bun.
-New install? Start here: [Getting started](https://docs.openclaw.ai/start/getting-started)
+**SecureClaw** is an enterprise-hardened fork of the popular OpenClaw framework. It replaces probabilistic "LLM-as-a-judge" safety measures with a deterministic, Zero-Trust execution harness.
+
+### The Security Harness
+
+SecureClaw wraps the standard OpenClaw execution loop with an embedded Rust sidecar (`predicate-authorityd`) that enforces safety in two places:
+
+1. **Pre-Execution Gate (The Gate):** Before the orchestrator executes an action (e.g., a bash command or browser click), it is intercepted and evaluated against a local, fail-closed JSON policy. It blocks rogue intents in <1ms before the OS even sees them.
+2. **Post-Execution Verification (The Math):** SecureClaw uses deterministic math based on state changes (e.g., `url_contains('example.com')`) to instantly evaluate if an action succeeded, completely eliminating hallucination risks in the validation step.
+
+[Website](https://predicatesystems.com) · [Security Docs](https://docs.predicatesystems.com) · [Policies Directory](policies/) · [Discord](https://discord.gg/predicatesystems)
+
+---
+
+## Install
+
+SecureClaw requires **Node ≥22** and is distributed under the official Predicate Systems NPM scope to guarantee supply-chain integrity.
+
+```bash
+# Install via the official scoped package
+npm install -g @predicatesystems/secureclaw@latest
+# or: pnpm add -g @predicatesystems/secureclaw@latest
+
+# Initialize with strict security defaults
+secureclaw onboard --install-daemon --strict-mode
+```
+
+## Quick Start (Secure Loop)
+
+By default, SecureClaw runs in a walled garden. You must define explicit permissions in your local policy files.
+
+```bash
+# Start the Gateway with the Rust interceptor enabled
+secureclaw gateway --port 18789 --policy-file policies/strict.json --verbose
+
+# Send an intent to the agent
+secureclaw agent --message "Read the ssh config" --thinking high
+
+# If the policy does not explicitly allow fs.read on ~/.ssh, it will be hard-blocked in <1ms.
+```
+
+---
+
+## Plug-and-Play Policies
+
+SecureClaw ships with four ready-to-use policy templates in the [`policies/`](policies/) directory. Pick the one that matches your security posture:
+
+| Policy                                                      | Use Case           | What It Does                                                                                                               |
+| ----------------------------------------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| **[`strict.json`](policies/strict.json)**                   | Production default | Workspace-isolated writes, blocks sensitive files (`.env`, `.ssh/`), allows safe shell commands and HTTPS. **Start here.** |
+| **[`strict-web-only.json`](policies/strict-web-only.json)** | Browser automation | Zero local access. Blocks ALL filesystem and shell. Only allows HTTPS navigation to allowlisted domains.                   |
+| **[`read-only-local.json`](policies/read-only-local.json)** | Code review agents | Read anywhere, write nowhere. Allows `cat`, `grep`, `git status` but blocks `rm`, `git push`, writes.                      |
+| **[`audit-only.json`](policies/audit-only.json)**           | Agent profiling    | Allows everything (except catastrophic commands) with full logging. **Use to learn what policies you need.**               |
+
+### Example: Deploying a Read-Only Code Reviewer
+
+```bash
+secureclaw gateway --port 18789 --policy-file policies/read-only-local.json
+```
+
+### Example: Locked-Down Browser Bot
+
+```bash
+secureclaw gateway --port 18789 --policy-file policies/strict-web-only.json
+```
+
+### Creating Custom Policies
+
+1. Start with `audit-only.json` to observe what your agent actually does
+2. Review the authorization logs to see requested actions
+3. Copy the closest template and customize the rules
+4. See [`policies/README.md`](policies/README.md) for the full schema reference
+
+---
+
+## Upstream OpenClaw Integrations
+
+SecureClaw inherits the massive, highly flexible integration ecosystem of upstream OpenClaw, allowing you to deploy secure agents across any surface.
+
+- **Multi-channel Inbox:** Connect to WhatsApp, Telegram, Slack, Discord, Microsoft Teams, Signal, and Matrix.
+- **First-Class Tools:** Native browser control (via Sentience DOM pruning), system cron, macOS Canvas, and iOS/Android nodes.
+- **Remote Gateway Operations:** Run your agent safely on headless Linux servers while maintaining remote access via Tailscale Serve/Funnel or SSH tunnels.
+
+_(For full channel setup instructions, see the [Upstream Integration Guides](https://docs.openclaw.ai/start/getting-started))_
 
 ## Sponsors
 
 | OpenAI                                                            | Blacksmith                                                                   |
 | ----------------------------------------------------------------- | ---------------------------------------------------------------------------- |
 | [![OpenAI](docs/assets/sponsors/openai.svg)](https://openai.com/) | [![Blacksmith](docs/assets/sponsors/blacksmith.svg)](https://blacksmith.sh/) |
-
-**Subscriptions (OAuth):**
-
-- **[OpenAI](https://openai.com/)** (ChatGPT/Codex)
-
-Model note: while any model is supported, I strongly recommend **Anthropic Pro/Max (100/200) + Opus 4.6** for long‑context strength and better prompt‑injection resistance. See [Onboarding](https://docs.openclaw.ai/start/onboarding).
-
-## Models (selection + auth)
-
-- Models config + CLI: [Models](https://docs.openclaw.ai/concepts/models)
-- Auth profile rotation (OAuth vs API keys) + fallbacks: [Model failover](https://docs.openclaw.ai/concepts/model-failover)
-
-## Install (recommended)
-
-Runtime: **Node ≥22**.
-
-```bash
-npm install -g openclaw@latest
-# or: pnpm add -g openclaw@latest
-
-openclaw onboard --install-daemon
-```
-
-The wizard installs the Gateway daemon (launchd/systemd user service) so it stays running.
-
-## Quick start (TL;DR)
-
-Runtime: **Node ≥22**.
-
-Full beginner guide (auth, pairing, channels): [Getting started](https://docs.openclaw.ai/start/getting-started)
-
-```bash
-openclaw onboard --install-daemon
-
-openclaw gateway --port 18789 --verbose
-
-# Send a message
-openclaw message send --to +1234567890 --message "Hello from SecureClaw"
-
-# Talk to the assistant (optionally deliver back to any connected channel: WhatsApp/Telegram/Slack/Discord/Google Chat/Signal/iMessage/BlueBubbles/Microsoft Teams/Matrix/Zalo/Zalo Personal/WebChat)
-openclaw agent --message "Ship checklist" --thinking high
-```
-
-Upgrading? [Updating guide](https://docs.openclaw.ai/install/updating) (and run `openclaw doctor`).
-
-## Development channels
-
-- **stable**: tagged releases (`vYYYY.M.D` or `vYYYY.M.D-<patch>`), npm dist-tag `latest`.
-- **beta**: prerelease tags (`vYYYY.M.D-beta.N`), npm dist-tag `beta` (macOS app may be missing).
-- **dev**: moving head of `main`, npm dist-tag `dev` (when published).
-
-Switch channels (git + npm): `openclaw update --channel stable|beta|dev`.
-Details: [Development channels](https://docs.openclaw.ai/install/development-channels).
-
-## From source (development)
-
-Prefer `pnpm` for builds from source. Bun is optional for running TypeScript directly.
-
-```bash
-git clone https://github.com/openclaw/openclaw.git
-cd openclaw
-
-pnpm install
-pnpm ui:build # auto-installs UI deps on first run
-pnpm build
-
-pnpm openclaw onboard --install-daemon
-
-# Dev loop (auto-reload on TS changes)
-pnpm gateway:watch
-```
-
-Note: `pnpm openclaw ...` runs TypeScript directly (via `tsx`). `pnpm build` produces `dist/` for running via Node / the packaged `openclaw` binary.
-
-## Security defaults (DM access)
-
-SecureClaw connects to real messaging surfaces. Treat inbound DMs as **untrusted input**.
-
-Full security guide: [Security](https://docs.openclaw.ai/gateway/security)
-
-Default behavior on Telegram/WhatsApp/Signal/iMessage/Microsoft Teams/Discord/Google Chat/Slack:
-
-- **DM pairing** (`dmPolicy="pairing"` / `channels.discord.dmPolicy="pairing"` / `channels.slack.dmPolicy="pairing"`; legacy: `channels.discord.dm.policy`, `channels.slack.dm.policy`): unknown senders receive a short pairing code and the bot does not process their message.
-- Approve with: `openclaw pairing approve <channel> <code>` (then the sender is added to a local allowlist store).
-- Public inbound DMs require an explicit opt-in: set `dmPolicy="open"` and include `"*"` in the channel allowlist (`allowFrom` / `channels.discord.allowFrom` / `channels.slack.allowFrom`; legacy: `channels.discord.dm.allowFrom`, `channels.slack.dm.allowFrom`).
-
-Run `openclaw doctor` to surface risky/misconfigured DM policies.
 
 ## Highlights
 
