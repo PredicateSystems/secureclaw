@@ -1,5 +1,6 @@
 name: Docker Release
 
+# Only run on upstream openclaw/openclaw repo
 on:
   push:
     branches:
@@ -24,6 +25,8 @@ env:
 jobs:
   # Build amd64 image
   build-amd64:
+    # Skip on secureclaw fork
+    if: github.repository == 'openclaw/openclaw'
     runs-on: blacksmith-16vcpu-ubuntu-2404
     permissions:
       packages: write
@@ -69,27 +72,6 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Resolve OCI labels (amd64)
-        id: labels
-        shell: bash
-        run: |
-          set -euo pipefail
-          version="${GITHUB_SHA}"
-          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
-            version="main"
-          fi
-          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
-            version="${GITHUB_REF#refs/tags/v}"
-          fi
-          created="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          {
-            echo "value<<EOF"
-            echo "org.opencontainers.image.revision=${GITHUB_SHA}"
-            echo "org.opencontainers.image.version=${version}"
-            echo "org.opencontainers.image.created=${created}"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
       - name: Build and push amd64 image
         id: build
         uses: docker/build-push-action@v6
@@ -97,7 +79,6 @@ jobs:
           context: .
           platforms: linux/amd64
           tags: ${{ steps.tags.outputs.value }}
-          labels: ${{ steps.labels.outputs.value }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-cache:amd64
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-cache:amd64,mode=max
           provenance: false
@@ -150,27 +131,6 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Resolve OCI labels (arm64)
-        id: labels
-        shell: bash
-        run: |
-          set -euo pipefail
-          version="${GITHUB_SHA}"
-          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
-            version="main"
-          fi
-          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
-            version="${GITHUB_REF#refs/tags/v}"
-          fi
-          created="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          {
-            echo "value<<EOF"
-            echo "org.opencontainers.image.revision=${GITHUB_SHA}"
-            echo "org.opencontainers.image.version=${version}"
-            echo "org.opencontainers.image.created=${created}"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
       - name: Build and push arm64 image
         id: build
         uses: docker/build-push-action@v6
@@ -178,7 +138,6 @@ jobs:
           context: .
           platforms: linux/arm64
           tags: ${{ steps.tags.outputs.value }}
-          labels: ${{ steps.labels.outputs.value }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-cache:arm64
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-cache:arm64,mode=max
           provenance: false
