@@ -1,0 +1,98 @@
+# Lightweight CI for SecureClaw branch
+# Runs faster checks, skips Windows/macOS/Android native builds
+#
+# The full upstream CI runs on main branch syncs.
+# This workflow runs only essential checks for SecureClaw PRs.
+
+name: SecureClaw CI
+
+on:
+  push:
+    branches: [secureclaw, phase2]
+  pull_request:
+    branches: [secureclaw, phase2]
+
+concurrency:
+  group: secureclaw-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: "lint & typecheck"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.23.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck and lint
+        run: pnpm check
+
+  test:
+    name: "secureclaw tests"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.23.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run SecureClaw tests
+        run: pnpm exec vitest run --config vitest.unit.config.ts src/plugins/secureclaw/
+
+  build:
+    name: "build"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.23.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Verify dist
+        run: |
+          test -s dist/index.js
+          test -s dist/plugin-sdk/index.js
